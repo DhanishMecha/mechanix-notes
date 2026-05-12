@@ -34,4 +34,40 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get lastMonth => 'पिछले महीने';
+
+  @override
+  String get startWriting => 'लिखना शुरू करें…';
+
+  @override
+  String get title => 'शीर्षक';
+
+  @override
+  String get undo => 'पूर्ववत करें';
+
+  @override
+  String get redo => 'फिर से करें';
+
+  @override
+  String get somethingWentWrong => 'कुछ गलत हो गया';
+
+  @override
+  String get goBack => 'वापस जाएं';
+
+  @override
+  String deleteNotePrompt(String noteTitle) {
+    return '\'$noteTitle\' हटाएं?';
+  }
+
+  @override
+  String get cancel => 'रद्द करें';
+
+  @override
+  String get saveChanges => 'परिवर्तन सहेजें';
+
+  @override
+  String get deleteNoteSubtitle =>
+      'यह नोट हमेशा के लिए हटा दी जाएगी और इसे वापस नहीं लाया जा सकता।';
+
+  @override
+  String get delete => 'हटाएं';
 }

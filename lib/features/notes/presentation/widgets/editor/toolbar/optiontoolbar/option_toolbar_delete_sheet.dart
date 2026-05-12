@@ -1,0 +1,139 @@
+import 'package:flutter/material.dart';
+import 'package:mechanix_notes/core/utils/icons.dart';
+import 'package:mechanix_notes/features/notes/presentation/widgets/editor/editor_button.dart';
+import 'package:mechanix_notes/l10n/notes_localizations.dart';
+
+class OptionToolbarDeleteSheet extends StatelessWidget {
+  final String noteTitle;
+  final VoidCallback onDelete;
+  const OptionToolbarDeleteSheet({
+    super.key,
+    required this.noteTitle,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Color(0xFF212121),
+        border: Border(top: BorderSide(color: Color(0xFF2D2D2D), width: 1)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(0, 8, 0, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Align(
+                  alignment: Alignment.topRight,
+                  child: EditorButton(
+                    onPress: () => Navigator.of(context).pop(),
+                    size: 24,
+                    asset: NotesIcon.closeIcon,
+                  ),
+                ),
+              ),
+
+              const Divider(color: Color(0xFF2D2D2D)),
+
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 12),
+
+                    Text(
+                      AppLocalizations.of(
+                        context,
+                      )!.deleteNotePrompt(noteTitle.trim()),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    // ✅ Updated subtitle — no more "trash" language
+                    Text(
+                      AppLocalizations.of(context)!.deleteNoteSubtitle,
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 16,
+                      ),
+                    ),
+
+                    const SizedBox(height: 28),
+
+                    Row(
+                      children: [
+                        Expanded(
+                          child: SizedBox(
+                            height: 44,
+                            child: FilledButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              style: FilledButton.styleFrom(
+                                enabledMouseCursor: SystemMouseCursors.click,
+                                backgroundColor: const Color(0xFF3A3A3A),
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(0),
+                                ),
+                              ),
+                              child: Text(
+                                AppLocalizations.of(context)!.cancel,
+                                style: const TextStyle(fontSize: 20),
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(width: 16),
+
+                        Expanded(
+                          child: SizedBox(
+                            height: 44,
+                            child: FilledButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                                onDelete();
+                              },
+                              // ✅ Red background to signal destructive action
+                              style: FilledButton.styleFrom(
+                                enabledMouseCursor: SystemMouseCursors.click,
+                                backgroundColor: const Color(0xFFC0392B),
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(0),
+                                ),
+                              ),
+                              child: Text(
+                                AppLocalizations.of(context)!.delete,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

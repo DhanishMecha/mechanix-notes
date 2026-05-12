@@ -44,42 +44,52 @@ class _HomeListViewState extends State<HomeListView> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<NotesBloc, NotesState>(
-      buildWhen: (prev, curr) =>
-          prev.isLoadingMore != curr.isLoadingMore ||
-          prev.hasMore != curr.hasMore,
-      builder: (context, state) {
-        final itemCount = widget.groupedNotes.length;
-
-        return Scrollbar(
-          controller: _scrollController,
-          child: ScrollConfiguration(
-            behavior: ScrollConfiguration.of(context).copyWith(
-              dragDevices: {PointerDeviceKind.touch, PointerDeviceKind.mouse},
-            ),
-            child: ListView.builder(
-              controller: _scrollController,
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.only(bottom: 20.0),
-              itemCount: itemCount,
-              prototypeItem: const SizedBox(height: 58.0),
-              // itemExtentBuilder: (index, dimensions) {
-              //   return widget.groupedNotes[index] is String ? 58.0 : 58.0;
-              // },
-              itemBuilder: (context, index) {
-                final item = widget.groupedNotes[index];
-                if (item is String) {
-                  return HomeGroupHeader(key: ValueKey(item), label: item);
-                }
-                if (item is NoteMetaData) {
-                  return HomeNoteCard(key: ValueKey(item.id), note: item);
-                }
-                return const SizedBox.shrink();
-              },
-            ),
-          ),
-        );
+    return BlocListener<NotesBloc, NotesState>(
+      listenWhen: (prev, curr) => curr.isRefreshed,
+      listener: (context, state) {
+        if (_scrollController.hasClients) {
+          _scrollController.jumpTo(
+            0,
+          );
+        }
       },
+      child: BlocBuilder<NotesBloc, NotesState>(
+        buildWhen: (prev, curr) =>
+            prev.isLoadingMore != curr.isLoadingMore ||
+            prev.hasMore != curr.hasMore,
+        builder: (context, state) {
+          final itemCount = widget.groupedNotes.length;
+
+          return Scrollbar(
+            controller: _scrollController,
+            child: ScrollConfiguration(
+              behavior: ScrollConfiguration.of(context).copyWith(
+                dragDevices: {PointerDeviceKind.touch, PointerDeviceKind.mouse},
+              ),
+              child: ListView.builder(
+                controller: _scrollController,
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.only(bottom: 40.0),
+                itemCount: itemCount,
+                prototypeItem: const SizedBox(height: 58.0),
+                // itemExtentBuilder: (index, dimensions) {
+                //   return widget.groupedNotes[index] is String ? 58.0 : 58.0;
+                // },
+                itemBuilder: (context, index) {
+                  final item = widget.groupedNotes[index];
+                  if (item is String) {
+                    return HomeGroupHeader(key: ValueKey(item), label: item);
+                  }
+                  if (item is NoteMetaData) {
+                    return HomeNoteCard(key: ValueKey(item.id), note: item);
+                  }
+                  return const SizedBox.shrink();
+                },
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 }

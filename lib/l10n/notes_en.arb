@@ -7,5 +7,23 @@
   "thisWeek": "This Week",
   "lastWeek": "Last Week",
   "thisMonth": "This Month",
-  "lastMonth": "Last Month"
+  "lastMonth": "Last Month",
+  "startWriting": "Start writing…",
+  "title": "Title",
+  "undo": "Undo",
+  "redo": "Redo",
+  "somethingWentWrong": "Something went wrong",
+  "goBack": "Go Back",
+  "deleteNotePrompt": "Delete '{noteTitle}'?",
+  "@deleteNotePrompt": {
+    "placeholders": {
+      "noteTitle": {
+        "type": "String"
+      }
+    }
+  },
+  "cancel": "Cancel",
+  "saveChanges": "Save changes",
+  "deleteNoteSubtitle": "This note will be permanently deleted and cannot be recovered.",
+  "delete": "Delete"
 }

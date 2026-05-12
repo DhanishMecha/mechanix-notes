@@ -1,0 +1,139 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_quill/flutter_quill.dart';
+
+DefaultStyles quillEditorStyle(BuildContext context) {
+  return const DefaultStyles(
+    bold: const TextStyle(fontWeight: FontWeight.w700),
+    italic: const TextStyle(fontStyle: FontStyle.italic),
+    underline: const TextStyle(decoration: TextDecoration.underline),
+    paragraph: const DefaultTextBlockStyle(
+      TextStyle(
+        fontSize: 20,
+        fontWeight: FontWeight.w400,
+        fontFamily: "Overused Grotesk",
+        color: Colors.white,
+        height: 1.45,
+        letterSpacing: 0.0,
+      ),
+      HorizontalSpacing(0, 0),
+      VerticalSpacing(0, 0),
+      VerticalSpacing(0, 0),
+      null,
+    ),
+
+    h1: const DefaultTextBlockStyle(
+      TextStyle(
+        fontSize: 26,
+        fontWeight: FontWeight.w700,
+        color: Colors.white,
+        height: 1.3,
+        fontFamily: "Overused Grotesk",
+        letterSpacing: 0,
+      ),
+      HorizontalSpacing(0, 0),
+      VerticalSpacing(10, 10),
+      VerticalSpacing(0, 0),
+      null,
+    ),
+
+    h2: const DefaultTextBlockStyle(
+      TextStyle(
+        fontSize: 22,
+        fontWeight: FontWeight.w700,
+        color: Colors.white,
+        fontFamily: "Overused Grotesk",
+        height: 1.25,
+        letterSpacing: 0,
+      ),
+      HorizontalSpacing(0, 0),
+      VerticalSpacing(5, 5),
+      VerticalSpacing(0, 0),
+      null,
+    ),
+
+    h3: const DefaultTextBlockStyle(
+      TextStyle(
+        fontSize: 20,
+        fontWeight: FontWeight.w600,
+        fontFamily: "Overused Grotesk",
+        color: Colors.white,
+        height: 1.2,
+        letterSpacing: 0.2,
+      ),
+      HorizontalSpacing(0, 0),
+      VerticalSpacing(2, 2),
+      VerticalSpacing(0, 0),
+      null,
+    ),
+
+    placeHolder: const DefaultTextBlockStyle(
+      TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.w400,
+        fontFamily: "Overused Grotesk",
+        color: Colors.white30,
+        height: 1.2,
+        letterSpacing: 0.2,
+      ),
+      HorizontalSpacing(0, 0),
+      VerticalSpacing(14, 8),
+      VerticalSpacing(0, 0),
+      null,
+    ),
+    quote: const DefaultTextBlockStyle(
+      TextStyle(
+        fontSize: 18,
+        color: Colors.white,
+        height: 1.2,
+        fontFamily: "Overused Grotesk",
+        fontStyle: FontStyle.italic,
+      ),
+      HorizontalSpacing(0, 0),
+      VerticalSpacing(8, 8),
+      VerticalSpacing(0, 0),
+      BoxDecoration(
+        border: Border(left: BorderSide(color: Color(0xFF666666), width: 3)),
+      ),
+    ),
+
+    code: const DefaultTextBlockStyle(
+      TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.w500,
+        color: Colors.white,
+        height: 1.35,
+        letterSpacing: -0.4,
+        fontFamily: 'Geist Mono',
+      ),
+      HorizontalSpacing(0, 0),
+      VerticalSpacing(16, 16),
+      VerticalSpacing(0, 0),
+
+      BoxDecoration(
+        color: Color(0xFF151515),
+        borderRadius: BorderRadius.all(Radius.circular(0)),
+      ),
+    ),
+
+    lists: DefaultListBlockStyle(
+      TextStyle(
+        color: Colors.white,
+        fontWeight: FontWeight.w400,
+        fontFamily: "Overused Grotesk",
+      ),
+      HorizontalSpacing(0, 0),
+      VerticalSpacing(2, 2),
+      VerticalSpacing(2, 2),
+      null,
+      null,
+    ),
+
+    link: TextStyle(
+      color: Color(0xFF4A9EFF),
+      decoration: TextDecoration.underline,
+      decorationColor: Color(0xFF4A9EFF),
+      fontFamily: "Overused Grotesk",
+    ),
+    color: Colors.white,
+  );
+}

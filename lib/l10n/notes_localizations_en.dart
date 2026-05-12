@@ -34,4 +34,40 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get lastMonth => 'Last Month';
+
+  @override
+  String get startWriting => 'Start writing…';
+
+  @override
+  String get title => 'Title';
+
+  @override
+  String get undo => 'Undo';
+
+  @override
+  String get redo => 'Redo';
+
+  @override
+  String get somethingWentWrong => 'Something went wrong';
+
+  @override
+  String get goBack => 'Go Back';
+
+  @override
+  String deleteNotePrompt(String noteTitle) {
+    return 'Delete \'$noteTitle\'?';
+  }
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get saveChanges => 'Save changes';
+
+  @override
+  String get deleteNoteSubtitle =>
+      'This note will be permanently deleted and cannot be recovered.';
+
+  @override
+  String get delete => 'Delete';
 }

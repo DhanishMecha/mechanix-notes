@@ -10,6 +10,7 @@ class NotesState extends Equatable {
   final int currentPage;
   final String? error;
   final String localized;
+  final bool isRefreshed;
 
   static const int pageSize = 20;
 
@@ -22,6 +23,7 @@ class NotesState extends Equatable {
     this.currentPage = 0,
     this.error,
     this.localized = 'en',
+    this.isRefreshed = false,
   });
 
   NotesState copyWith({
@@ -33,6 +35,7 @@ class NotesState extends Equatable {
     int? currentPage,
     String? error,
     String? localized,
+    bool? isRefreshed,
   }) {
     return NotesState(
       notes: notes ?? this.notes,
@@ -43,6 +46,7 @@ class NotesState extends Equatable {
       currentPage: currentPage ?? this.currentPage,
       error: error,
       localized: localized ?? this.localized,
+      isRefreshed: isRefreshed ?? false,
     );
   }
 
@@ -56,5 +60,6 @@ class NotesState extends Equatable {
     currentPage,
     error,
     localized,
+    isRefreshed,
   ];
 }

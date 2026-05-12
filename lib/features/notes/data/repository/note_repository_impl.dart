@@ -25,7 +25,7 @@ class NoteRepositoryImpl extends NoteRepository {
   Future<void> initializeHive() async {
     try {
       final home = Platform.environment['HOME'];
-      // path of hive: /home/user/.config/mechanix_notes
+      // path of hive: /home/{user}/.config/mechanix_notes
       final baseDir = '$home/.config';
       final appDir = Directory('$baseDir/mechanix_notes');
       final exists = await appDir.exists();
@@ -71,6 +71,28 @@ class NoteRepositoryImpl extends NoteRepository {
     } catch (e) {
       AppLogger.e('Failed to fetch notes: $e');
       return [];
+    }
+  }
+
+  @override
+  Future<NoteMetaData?> getNoteById(String id) async {
+    try {
+      await ensureHiveConnected();
+      final note = box.get(id);
+      if (note != null) {
+        return NoteMetaData(
+          id: note.id,
+          height: note.height,
+          title: note.title,
+          createdAt: note.createdAt,
+          updatedAt: note.updatedAt,
+          previewText: note.previewText,
+        );
+      }
+      return null;
+    } catch (e) {
+      AppLogger.e('Failed to fetch note by id: $e');
+      return null;
     }
   }
 

@@ -7,5 +7,23 @@
   "thisWeek": "इस सप्ताह",
   "lastWeek": "पिछले सप्ताह",
   "thisMonth": "इस महीने",
-  "lastMonth": "पिछले महीने"
+  "lastMonth": "पिछले महीने",
+  "startWriting": "लिखना शुरू करें…",
+  "title": "शीर्षक",
+  "undo": "पूर्ववत करें",
+  "redo": "फिर से करें",
+  "somethingWentWrong": "कुछ गलत हो गया",
+  "goBack": "वापस जाएं",
+  "deleteNotePrompt": "'{noteTitle}' हटाएं?",
+  "@deleteNotePrompt": {
+    "placeholders": {
+      "noteTitle": {
+        "type": "String"
+      }
+    }
+  },
+  "cancel": "रद्द करें",
+  "saveChanges": "परिवर्तन सहेजें",
+  "deleteNoteSubtitle": "यह नोट हमेशा के लिए हटा दी जाएगी और इसे वापस नहीं लाया जा सकता।",
+  "delete": "हटाएं"
 }

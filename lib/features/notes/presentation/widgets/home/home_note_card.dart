@@ -19,7 +19,7 @@ class HomeNoteCard extends StatelessWidget {
           Navigator.pushNamed(
             context,
             '/note-editor',
-            arguments: {'noteId': note.id},
+            arguments: {'noteId': note.id, 'noteTitle': note.title},
           );
         },
         child: Padding(
@@ -43,7 +43,7 @@ class HomeNoteCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      note.title,
+                      note.title.isNotEmpty ? note.title : note.previewText,
                       style: const TextStyle(
                         color: NotesColors.titleColor,
                         fontSize: 17,

@@ -12,6 +12,9 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
   NotesBloc({required this.noteRepository}) : super(const NotesState()) {
     on<LoadNotes>(_loadNotes);
     on<LoadMoreNotes>(_loadMoreNotes);
+    on<RefreshNote>(_refreshNote);
+    on<DeleteNote>(_deleteNote);
+
     add(LoadNotes());
   }
 
@@ -54,7 +57,7 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
   ) async {
     try {
       if (state.isLoadingMore || !state.hasMore) return;
-
+      AppLogger.i("Loading more notes");
       emit(state.copyWith(isLoadingMore: true));
       // find currentCount of total notes
       final currentCount = state.groupedNotes.whereType<NoteMetaData>().length;
@@ -109,6 +112,73 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
     }
 
     return flattened;
+  }
+
+  Future<void> _refreshNote(RefreshNote event, Emitter<NotesState> emit) async {
+    try {
+      AppLogger.i("Refreshing note ${event.noteId}");
+      final updatedNote = await noteRepository.getNoteById(event.noteId);
+      if (updatedNote == null) return;
+      final label = _getTimeLabelForNote(updatedNote);
+
+      if (label != "Recent") return;
+      emit(state.copyWith(isRefreshed: false));
+
+      // Remove old entry and insert updated note at top (most recently updated)
+      final updatedNotes = [
+        updatedNote,
+        ...state.notes.where((n) => n.id != event.noteId),
+      ];
+
+      // Reset pagination to first page only
+      final firstPage = updatedNotes.take(NotesState.pageSize).toList();
+      final flattened = _buildFlattenedNotes(firstPage);
+      final hasMore = updatedNotes.length > NotesState.pageSize;
+
+      AppLogger.i("Refreshing note completed ");
+
+      emit(
+        state.copyWith(
+          notes: updatedNotes,
+          groupedNotes: flattened,
+          hasMore: hasMore,
+          currentPage: 0,
+          isRefreshed: true,
+        ),
+      );
+    } catch (e) {
+      AppLogger.e("Error refreshing note: $e");
+    }
+  }
+
+  Future<void> _deleteNote(DeleteNote event, Emitter<NotesState> emit) async {
+    try {
+      AppLogger.i("Deleting note ${event.noteId}");
+
+      // Remove deleted note from the  list
+      final updatedNotes = state.notes
+          .where((n) => n.id != event.noteId)
+          .toList();
+
+      // Reset pagination
+      final firstPage = updatedNotes.take(NotesState.pageSize).toList();
+      final flattened = _buildFlattenedNotes(firstPage);
+      final hasMore = updatedNotes.length > NotesState.pageSize;
+
+      AppLogger.i("Note deleted — ${updatedNotes.length} notes remaining");
+
+      emit(
+        state.copyWith(
+          notes: updatedNotes,
+          groupedNotes: flattened,
+          hasMore: hasMore,
+          currentPage: 0,
+        ),
+      );
+    } catch (e) {
+      AppLogger.e("Error deleting note: $e");
+      emit(state.copyWith(error: "Failed to delete note. Please try again."));
+    }
   }
 
   String _getTimeLabelForNote(NoteMetaData note) {

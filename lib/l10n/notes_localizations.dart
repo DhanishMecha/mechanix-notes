@@ -151,6 +151,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Last Month'**
   String get lastMonth;
+
+  /// No description provided for @startWriting.
+  ///
+  /// In en, this message translates to:
+  /// **'Start writing…'**
+  String get startWriting;
+
+  /// No description provided for @title.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get title;
+
+  /// No description provided for @undo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get undo;
+
+  /// No description provided for @redo.
+  ///
+  /// In en, this message translates to:
+  /// **'Redo'**
+  String get redo;
+
+  /// No description provided for @somethingWentWrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong'**
+  String get somethingWentWrong;
+
+  /// No description provided for @goBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Go Back'**
+  String get goBack;
+
+  /// No description provided for @deleteNotePrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete \'{noteTitle}\'?'**
+  String deleteNotePrompt(String noteTitle);
+
+  /// No description provided for @cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
+
+  /// No description provided for @saveChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Save changes'**
+  String get saveChanges;
+
+  /// No description provided for @deleteNoteSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'This note will be permanently deleted and cannot be recovered.'**
+  String get deleteNoteSubtitle;
+
+  /// No description provided for @delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get delete;
 }
 
 class _AppLocalizationsDelegate

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mechanix_notes/core/utils/colors.dart';
 import 'package:mechanix_notes/core/utils/icons.dart';
-import 'package:mechanix_notes/core/widgets/clickable_region.dart';
 import 'package:mechanix_notes/l10n/notes_localizations.dart';
 
 class HomeTitleBar extends StatelessWidget {
@@ -21,8 +20,11 @@ class HomeTitleBar extends StatelessWidget {
               fontSize: 24,
             ),
           ),
-          ClickableRegion(
-            child: Image.asset(NotesIcon.gridIcon, width: 24, height: 24),
+          Image.asset(
+            NotesIcon.gridIcon,
+            width: 24,
+            height: 24,
+            color: Colors.white30,
           ),
         ],
       ),
