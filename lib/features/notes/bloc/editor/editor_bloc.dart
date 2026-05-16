@@ -20,7 +20,6 @@ class EditorBloc extends Bloc<EditorEvent, EditorState> {
     on<EditorToolbarToggled>(_onToolbarToggled);
     on<EditorSaveRequested>(_onSaveRequested);
     on<EditorAutoSaveRequested>(_onAutoSaveRequested);
-    on<EditorDeleteRequested>(_onDeleteRequested);
   }
 
   // ─── Handlers ────────────────────────────────────────────────────────────────
@@ -120,8 +119,7 @@ class EditorBloc extends Bloc<EditorEvent, EditorState> {
           emit(EditorDiscarded());
         } else {
           AppLogger.i('EditorBloc: Deleting existing note because it is empty');
-          await _repository.deleteNote(current.noteId);
-          emit(EditorDeleteSuccess(current.noteId));
+          emit(EditorDeleteRequest(current.noteId));
         }
         return;
       }
@@ -140,8 +138,8 @@ class EditorBloc extends Bloc<EditorEvent, EditorState> {
       emit(current.copyWith(isSaving: true));
 
       final now = DateTime.now();
-      final previewText = event.plainText.length > 35
-          ? '${event.plainText.trim().substring(0, 35)}'
+      final previewText = event.plainText.length > 40
+          ? event.plainText.trim().substring(0, 40)
           : event.plainText.trim();
 
       final note = NoteModel(
@@ -193,8 +191,8 @@ class EditorBloc extends Bloc<EditorEvent, EditorState> {
           event.plainText.trim().isEmpty) {
         return;
       }
-      final previewText = event.plainText.length > 35
-          ? '${event.plainText.trim().substring(0, 35)}'
+      final previewText = event.plainText.length > 40
+          ? event.plainText.trim().substring(0, 40)
           : event.plainText.trim();
       final now = DateTime.now();
       final note = NoteModel(
@@ -221,28 +219,8 @@ class EditorBloc extends Bloc<EditorEvent, EditorState> {
           isNewNote: current.isNewNote ? false : current.isNewNote,
         ),
       );
-      if (current.isNewNote) {
-        emit(current.copyWith(isNewNote: false));
-      }
     } catch (e) {
       AppLogger.e('EditorBloc: Auto-save failed: $e');
-    }
-  }
-
-  Future<void> _onDeleteRequested(
-    EditorDeleteRequested event,
-    Emitter<EditorState> emit,
-  ) async {
-    final current = state;
-    if (current is! EditorLoaded) return;
-
-    try {
-      await _repository.deleteNote(current.noteId);
-      AppLogger.i('EditorBloc: Deleted ${current.noteId}');
-      emit(EditorDeleteSuccess(current.noteId));
-    } catch (e) {
-      AppLogger.e('EditorBloc: Delete failed: $e');
-      emit(EditorFailure('Failed to delete note.'));
     }
   }
 

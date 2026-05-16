@@ -7,7 +7,11 @@ import 'package:mechanix_notes/features/notes/presentation/widgets/editor/quill_
 class MenuToolbar extends StatelessWidget {
   const MenuToolbar({super.key});
 
-  void _toggleList(QuillController controller, FocusNode focusNode, Attribute attribute) {
+  void _toggleList(
+    QuillController controller,
+    FocusNode focusNode,
+    Attribute attribute,
+  ) {
     final selection = controller.selection;
     final attrs = controller.getSelectionStyle().attributes;
     final currentAttr = attrs[attribute.key];
@@ -59,7 +63,8 @@ class MenuToolbar extends StatelessWidget {
                 asset: NotesIcon.todoIcon,
                 size: 28,
                 isActive: isActive(Attribute.unchecked),
-                onPress: () => _toggleList(controller, focusNode, Attribute.unchecked),
+                onPress: () =>
+                    _toggleList(controller, focusNode, Attribute.unchecked),
               ),
               const SizedBox(width: 40),
               EditorButton(

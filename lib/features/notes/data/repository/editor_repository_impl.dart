@@ -58,7 +58,9 @@ class EditorRepositoryImpl extends EditorRepository {
     try {
       await ensureHiveConnected();
       await box.put(note.id, note);
-      AppLogger.i('EditorRepository: createNote(${note.id}) ✓');
+      AppLogger.i(
+        'EditorRepository: createNote(${note.id}) ${note.updatedAt} ${note.title} ✓',
+      );
     } catch (e) {
       AppLogger.e('EditorRepository: createNote failed: $e');
     }
@@ -69,20 +71,11 @@ class EditorRepositoryImpl extends EditorRepository {
     try {
       await ensureHiveConnected();
       await box.put(note.id, note);
-      AppLogger.i('EditorRepository: updateNote(${note.id}) ✓');
+      AppLogger.i(
+        'EditorRepository: updateNote(${note.id}) ${note.updatedAt} ${note.title} ✓',
+      );
     } catch (e) {
       AppLogger.e('EditorRepository: updateNote failed: $e');
-    }
-  }
-
-  @override
-  Future<void> deleteNote(String id) async {
-    try {
-      await ensureHiveConnected();
-      await box.delete(id);
-      AppLogger.i('EditorRepository: deleteNote($id) ✓');
-    } catch (e) {
-      AppLogger.e('EditorRepository: deleteNote failed: $e');
     }
   }
 }

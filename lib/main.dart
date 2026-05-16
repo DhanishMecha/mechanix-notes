@@ -1,9 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:hive/hive.dart';
 import 'package:mechanix_notes/core/utils/app_routes.dart';
-import 'package:mechanix_notes/core/utils/colors.dart';
+import 'package:mechanix_notes/core/utils/theme.dart';
 import 'package:mechanix_notes/features/notes/bloc/notes/notes_bloc.dart';
 import 'package:mechanix_notes/features/notes/data/models/note_model.dart';
 import 'package:mechanix_notes/features/notes/data/repository/note_repository.dart';
@@ -13,6 +15,7 @@ import 'package:mechanix_notes/features/notes/data/repository/editor_repository_
 import 'package:mechanix_notes/features/notes/presentation/screens/editor.dart';
 import 'package:mechanix_notes/features/notes/presentation/screens/home.dart';
 import 'package:mechanix_notes/l10n/notes_localizations.dart';
+import 'package:show_fps/show_fps.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -44,23 +47,19 @@ class NotesApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final showFps = Platform.environment['SHOW_FPS'] == 'true';
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      builder: showFps
+          ? (context, child) {
+              return ShowFPS(visible: showFps, showChart: false, child: child!);
+            }
+          : null,
       themeMode: ThemeMode.dark,
-      darkTheme: ThemeData.dark(useMaterial3: true).copyWith(
-        pageTransitionsTheme: const PageTransitionsTheme(
-          builders: {TargetPlatform.linux: CupertinoPageTransitionsBuilder()},
-        ),
-        scrollbarTheme: const ScrollbarThemeData(
-          radius: Radius.circular(4),
-          thickness: WidgetStatePropertyAll(4),
-          thumbColor: WidgetStatePropertyAll(NotesColors.timeLabelColor),
-        ),
-        textSelectionTheme: const TextSelectionThemeData(
-          cursorColor: Colors.white,
-        ),
-      ),
-      theme: ThemeData.light(useMaterial3: true),
+      darkTheme: AppTheme.dark,
+      theme: AppTheme.light,
+
       home: const HomeScreen(),
       locale: const Locale('en'),
       localizationsDelegates: const [

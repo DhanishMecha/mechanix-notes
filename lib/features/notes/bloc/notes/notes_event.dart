@@ -9,7 +9,18 @@ class RefreshNote extends NotesEvent {
   RefreshNote({required this.noteId});
 }
 
-class DeleteNote extends NotesEvent {
-  final String noteId;
-  DeleteNote({required this.noteId});
+class DeleteNotes extends NotesEvent {
+  final List<String>? noteIds;
+  DeleteNotes({this.noteIds});
 }
+
+class ToggleSelectionMode extends NotesEvent {}
+
+class ToggleNoteSelection extends NotesEvent {
+  final String noteId;
+  ToggleNoteSelection({required this.noteId});
+}
+
+class SelectAllNotes extends NotesEvent {}
+
+class ClearSelection extends NotesEvent {}

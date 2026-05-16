@@ -16,8 +16,8 @@ class QuillControllerProvider extends InheritedWidget {
   /// Returns the nearest [QuillControllerProvider] ancestor.
   /// Throws a [FlutterError] if none is found (fail-fast in debug).
   static QuillControllerProvider of(BuildContext context) {
-    final result =
-        context.dependOnInheritedWidgetOfExactType<QuillControllerProvider>();
+    final result = context
+        .dependOnInheritedWidgetOfExactType<QuillControllerProvider>();
     assert(
       result != null,
       'No QuillControllerProvider found in context.\n'
@@ -30,7 +30,8 @@ class QuillControllerProvider extends InheritedWidget {
   /// Returns null if no [QuillControllerProvider] is found.
   /// Prefer [of] inside the editor subtree; use this only for optional access.
   static QuillControllerProvider? maybeOf(BuildContext context) {
-    return context.dependOnInheritedWidgetOfExactType<QuillControllerProvider>();
+    return context
+        .dependOnInheritedWidgetOfExactType<QuillControllerProvider>();
   }
 
   @override

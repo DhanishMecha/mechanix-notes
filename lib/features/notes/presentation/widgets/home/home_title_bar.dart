@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mechanix_notes/core/utils/colors.dart';
-import 'package:mechanix_notes/core/utils/icons.dart';
+import 'package:mechanix_notes/features/notes/bloc/notes/notes_bloc.dart';
+import 'package:mechanix_notes/features/notes/bloc/notes/notes_state.dart';
 import 'package:mechanix_notes/l10n/notes_localizations.dart';
 
 class HomeTitleBar extends StatelessWidget {
@@ -9,24 +11,36 @@ class HomeTitleBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(left: 16, right: 20, top: 16, bottom: 16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            AppLocalizations.of(context)!.notes,
-            style: const TextStyle(
-              color: NotesColors.appTitleColor,
-              fontSize: 24,
-            ),
-          ),
-          Image.asset(
-            NotesIcon.gridIcon,
-            width: 24,
-            height: 24,
-            color: Colors.white30,
-          ),
-        ],
+      padding: const EdgeInsets.only(left: 16, right: 20, top: 16, bottom: 4),
+      child: BlocBuilder<NotesBloc, NotesState>(
+        buildWhen: (prev, curr) =>
+            prev.isSelectionMode != curr.isSelectionMode ||
+            prev.selectedNotes.length != curr.selectedNotes.length,
+        builder: (context, state) {
+          final count = state.selectedNotes.length;
+
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              if (state.isSelectionMode)
+                Text(
+                  '$count ${count > 1 ? 'notes' : 'note'} selected',
+                  style: const TextStyle(
+                    color: NotesColors.appTitleColor,
+                    fontSize: 20,
+                  ),
+                )
+              else
+                Text(
+                  AppLocalizations.of(context)!.notes,
+                  style: const TextStyle(
+                    color: NotesColors.appTitleColor,
+                    fontSize: 24,
+                  ),
+                ),
+            ],
+          );
+        },
       ),
     );
   }

@@ -85,6 +85,7 @@ class _EditorContentState extends State<EditorContent> {
           focusNode: provider.focusNode,
           scrollController: _scrollController,
           config: QuillEditorConfig(
+            customShortcuts: const {},
             placeholder: AppLocalizations.of(context)!.startWriting,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             customStyles: quillEditorStyle(context),

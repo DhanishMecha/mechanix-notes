@@ -65,8 +65,8 @@ class _EditorViewState extends State<EditorView> {
           context.read<NotesBloc>().add(RefreshNote(noteId: state.noteId));
           Navigator.of(context).pop();
         }
-        if (state is EditorDeleteSuccess) {
-          context.read<NotesBloc>().add(DeleteNote(noteId: state.noteId));
+        if (state is EditorDeleteRequest) {
+          context.read<NotesBloc>().add(DeleteNotes(noteIds: [state.noteId]));
           Navigator.of(context).pop();
         }
         if (state is EditorFailure) {
@@ -86,7 +86,7 @@ class _EditorViewState extends State<EditorView> {
 
         if (state is EditorLoaded ||
             state is EditorSaveSuccess ||
-            state is EditorDeleteSuccess) {
+            state is EditorDeleteRequest) {
           final shell = Scaffold(
             backgroundColor: Colors.black,
             appBar: const PreferredSize(

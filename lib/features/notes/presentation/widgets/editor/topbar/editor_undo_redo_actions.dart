@@ -4,7 +4,7 @@ import 'package:mechanix_notes/core/utils/icons.dart';
 import 'package:mechanix_notes/l10n/notes_localizations.dart';
 
 class EditorUndoRedoActions extends StatelessWidget {
-  const EditorUndoRedoActions({required this.quillController});
+  const EditorUndoRedoActions({super.key, required this.quillController});
 
   final QuillController quillController;
 
@@ -12,7 +12,7 @@ class EditorUndoRedoActions extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListenableBuilder(
       listenable: quillController,
-      builder: (_, __) => Row(
+      builder: (_, _) => Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           _UndoRedoButton(
@@ -49,11 +49,12 @@ class _UndoRedoButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IconButton(
+      padding: const EdgeInsets.all(10),
       mouseCursor: isEnabled ? SystemMouseCursors.click : MouseCursor.defer,
       icon: Image.asset(
         iconAsset,
-        width: 22,
-        height: 22,
+        width: 24,
+        height: 24,
         color: isEnabled ? Colors.white : Colors.white30,
       ),
       tooltip: tooltip,

@@ -9,16 +9,22 @@ class HomeGroupHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 26.0),
-      child: Text(
-        getLocalizedLabelForTimeNotes(context, label),
-        style: const TextStyle(
-          color: NotesColors.timeLabelColor,
-          fontSize: 18,
-          fontWeight: FontWeight.w600,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 26.0),
+          child: Text(
+            getLocalizedLabelForTimeNotes(context, label),
+            style: const TextStyle(
+              color: NotesColors.timeLabelColor,
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ),
-      ),
+        const SizedBox(height: 10),
+      ],
     );
   }
 }

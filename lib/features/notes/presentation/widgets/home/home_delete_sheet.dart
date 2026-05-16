@@ -3,12 +3,12 @@ import 'package:mechanix_notes/core/utils/icons.dart';
 import 'package:mechanix_notes/features/notes/presentation/widgets/editor/editor_button.dart';
 import 'package:mechanix_notes/l10n/notes_localizations.dart';
 
-class OptionToolbarDeleteSheet extends StatelessWidget {
-  final String noteTitle;
+class HomeDeleteSheet extends StatelessWidget {
+  final int selectedCount;
   final VoidCallback onDelete;
-  const OptionToolbarDeleteSheet({
+  const HomeDeleteSheet({
     super.key,
-    required this.noteTitle,
+    required this.selectedCount,
     required this.onDelete,
   });
 
@@ -50,9 +50,9 @@ class OptionToolbarDeleteSheet extends StatelessWidget {
                     const SizedBox(height: 12),
 
                     Text(
-                      AppLocalizations.of(
-                        context,
-                      )!.deleteNotePrompt(noteTitle.trim()),
+                      selectedCount == 1
+                          ? 'Delete 1 note?'
+                          : 'Delete $selectedCount notes?',
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 20,
@@ -62,9 +62,10 @@ class OptionToolbarDeleteSheet extends StatelessWidget {
 
                     const SizedBox(height: 12),
 
-                    // ✅ Updated subtitle — no more "trash" language
                     Text(
-                      AppLocalizations.of(context)!.deleteNoteSubtitle,
+                      selectedCount == 1
+                          ? 'This note will be permanently deleted and cannot be recovered.'
+                          : 'These notes will be permanently deleted and cannot be recovered.',
                       style: const TextStyle(
                         color: Colors.white70,
                         fontSize: 16,
@@ -106,7 +107,6 @@ class OptionToolbarDeleteSheet extends StatelessWidget {
                                 Navigator.of(context).pop();
                                 onDelete();
                               },
-                              // ✅ Red background to signal destructive action
                               style: FilledButton.styleFrom(
                                 enabledMouseCursor: SystemMouseCursors.click,
                                 backgroundColor: const Color(0xFFC0392B),

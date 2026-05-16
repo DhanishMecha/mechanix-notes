@@ -101,4 +101,15 @@ class NoteRepositoryImpl extends NoteRepository {
     notes.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
     return notes;
   }
+
+  @override
+  Future<void> deleteNotes(List<String> ids) async {
+    try {
+      await ensureHiveConnected();
+      await box.deleteAll(ids);
+      AppLogger.i('NoteRepository: deleteNotes(${ids.length}) ✓');
+    } catch (e) {
+      AppLogger.e('NoteRepository: deleteNotes failed: $e');
+    }
+  }
 }

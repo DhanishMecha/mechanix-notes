@@ -43,6 +43,9 @@ dependencies:
   intl: ^0.19.0
   flutter_localizations:
     sdk: flutter
+  bloc_test: ^10.0.0
+  mocktail: ^1.0.5
+  show_fps: ^1.1.0
 
 dependency_overrides:
   intl: ^0.20.2
@@ -50,14 +53,14 @@ dependency_overrides:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
+  integration_test:
+    sdk: flutter
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
-  hive_generator: ^2.0.1
   build_runner: ^2.4.6
 
 # For information on the generic Dart part of this file, see the
@@ -84,11 +87,10 @@ flutter:
   # "family" key with the font family name, and a "fonts" key with a
   # list giving the asset and other descriptors for the font. For
   # example:
-  # fonts:
-  #   - family: Schyler
-  #     fonts:
-  #       - asset: fonts/Schyler-Regular.ttf
-  #       - asset: fonts/Schyler-Italic.ttf
+  fonts:
+    - family: Sora
+      fonts:
+        - asset: assets/fonts/Sora-Regular.ttf
   #         style: italic
   #   - family: Trajan Pro
   #     fonts:

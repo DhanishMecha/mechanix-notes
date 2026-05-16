@@ -30,4 +30,3 @@ final class EditorAutoSaveRequested extends EditorEvent {
   EditorAutoSaveRequested({required this.content, required this.plainText});
 }
 
-final class EditorDeleteRequested extends EditorEvent {}

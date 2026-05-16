@@ -62,9 +62,9 @@ final class EditorSaveSuccess extends EditorState {
   EditorSaveSuccess(this.noteId);
 }
 
-final class EditorDeleteSuccess extends EditorState {
+final class EditorDeleteRequest extends EditorState {
   final String noteId;
-  EditorDeleteSuccess(this.noteId);
+  EditorDeleteRequest(this.noteId);
 }
 
 final class EditorDiscarded extends EditorState {

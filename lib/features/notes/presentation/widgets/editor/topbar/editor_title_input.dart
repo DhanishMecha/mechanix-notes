@@ -6,7 +6,7 @@ import 'package:mechanix_notes/features/notes/bloc/editor/editor_bloc.dart';
 import 'package:mechanix_notes/l10n/notes_localizations.dart';
 
 class EditorTitleInput extends StatefulWidget {
-  const EditorTitleInput();
+  const EditorTitleInput({super.key});
 
   @override
   State<EditorTitleInput> createState() => EditorTitleInputState();
@@ -45,23 +45,25 @@ class EditorTitleInputState extends State<EditorTitleInput> {
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
-      controller: _titleController,
-      maxLength: 50,
-      maxLines: 1,
-      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-        fontWeight: FontWeight.w400,
-        color: Colors.white,
+    return RepaintBoundary(
+      child: TextField(
+        controller: _titleController,
+        maxLength: 40,
+        maxLines: 1,
+        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+          fontWeight: FontWeight.w400,
+          color: Colors.white,
+        ),
+        decoration: InputDecoration(
+          hintText: AppLocalizations.of(context)!.title,
+          hintStyle: const TextStyle(color: Colors.white38),
+          border: InputBorder.none,
+          counterText: '',
+          contentPadding: EdgeInsets.zero,
+          isDense: true,
+        ),
+        onChanged: _onChanged,
       ),
-      decoration: InputDecoration(
-        hintText: AppLocalizations.of(context)!.title,
-        hintStyle: const TextStyle(color: Colors.white38),
-        border: InputBorder.none,
-        counterText: '',
-        contentPadding: EdgeInsets.zero,
-        isDense: true,
-      ),
-      onChanged: _onChanged,
     );
   }
 }

@@ -48,15 +48,11 @@ class _HomeListViewState extends State<HomeListView> {
       listenWhen: (prev, curr) => curr.isRefreshed,
       listener: (context, state) {
         if (_scrollController.hasClients) {
-          _scrollController.jumpTo(
-            0,
-          );
+          _scrollController.jumpTo(0);
         }
       },
       child: BlocBuilder<NotesBloc, NotesState>(
-        buildWhen: (prev, curr) =>
-            prev.isLoadingMore != curr.isLoadingMore ||
-            prev.hasMore != curr.hasMore,
+        buildWhen: (prev, curr) => prev.groupedNotes != curr.groupedNotes,
         builder: (context, state) {
           final itemCount = widget.groupedNotes.length;
 
@@ -71,10 +67,7 @@ class _HomeListViewState extends State<HomeListView> {
                 physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.only(bottom: 40.0),
                 itemCount: itemCount,
-                prototypeItem: const SizedBox(height: 58.0),
-                // itemExtentBuilder: (index, dimensions) {
-                //   return widget.groupedNotes[index] is String ? 58.0 : 58.0;
-                // },
+                prototypeItem: const SizedBox(height: 68.0),
                 itemBuilder: (context, index) {
                   final item = widget.groupedNotes[index];
                   if (item is String) {

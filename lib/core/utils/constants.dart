@@ -1,3 +1,3 @@
 class Constants {
-    static const String tableName = "notesTablev1";
-} 
+  static const String tableName = "notesTablev1";
+}

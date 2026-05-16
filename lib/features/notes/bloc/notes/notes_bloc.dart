@@ -13,7 +13,11 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
     on<LoadNotes>(_loadNotes);
     on<LoadMoreNotes>(_loadMoreNotes);
     on<RefreshNote>(_refreshNote);
-    on<DeleteNote>(_deleteNote);
+    on<DeleteNotes>(_deleteNotes);
+    on<ToggleSelectionMode>(_toggleSelectionMode);
+    on<ToggleNoteSelection>(_toggleNoteSelection);
+    on<SelectAllNotes>(_selectAllNotes);
+    on<ClearSelection>(_clearSelection);
 
     add(LoadNotes());
   }
@@ -151,21 +155,28 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
     }
   }
 
-  Future<void> _deleteNote(DeleteNote event, Emitter<NotesState> emit) async {
+  Future<void> _deleteNotes(DeleteNotes event, Emitter<NotesState> emit) async {
     try {
-      AppLogger.i("Deleting note ${event.noteId}");
+      emit(state.copyWith(isRefreshed: false));
 
-      // Remove deleted note from the  list
+      final selectedNotes = state.isSelectionMode
+          ? List<String>.from(state.selectedNotes)
+          : event.noteIds ?? [];
+
+      AppLogger.i("Deleting notes: total notes ${state.notes.length}");
+
+      if (selectedNotes.isEmpty) return;
+
+      await noteRepository.deleteNotes(selectedNotes);
       final updatedNotes = state.notes
-          .where((n) => n.id != event.noteId)
+          .where((n) => !selectedNotes.contains(n.id))
           .toList();
 
-      // Reset pagination
       final firstPage = updatedNotes.take(NotesState.pageSize).toList();
       final flattened = _buildFlattenedNotes(firstPage);
       final hasMore = updatedNotes.length > NotesState.pageSize;
 
-      AppLogger.i("Note deleted — ${updatedNotes.length} notes remaining");
+      AppLogger.i("Notes deleted — ${updatedNotes.length} notes remaining");
 
       emit(
         state.copyWith(
@@ -173,12 +184,63 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
           groupedNotes: flattened,
           hasMore: hasMore,
           currentPage: 0,
+          selectedNotes: const [],
+          isSelectionMode: false,
+          isRefreshed: true,
         ),
       );
     } catch (e) {
-      AppLogger.e("Error deleting note: $e");
-      emit(state.copyWith(error: "Failed to delete note. Please try again."));
+      AppLogger.e("Error deleting notes: $e");
+      emit(state.copyWith(error: "Failed to delete notes. Please try again."));
     }
+  }
+
+  void _toggleSelectionMode(
+    ToggleSelectionMode event,
+    Emitter<NotesState> emit,
+  ) {
+    emit(
+      state.copyWith(
+        isSelectionMode: !state.isSelectionMode,
+        selectedNotes: state.isSelectionMode ? const [] : state.selectedNotes,
+      ),
+    );
+  }
+
+  void _toggleNoteSelection(
+    ToggleNoteSelection event,
+    Emitter<NotesState> emit,
+  ) {
+    final selected = List<String>.from(state.selectedNotes);
+    if (selected.contains(event.noteId)) {
+      selected.remove(event.noteId);
+    } else {
+      selected.add(event.noteId);
+    }
+
+    final isSelectionMode = state.isSelectionMode || selected.isNotEmpty;
+
+    emit(
+      state.copyWith(selectedNotes: selected, isSelectionMode: isSelectionMode),
+    );
+  }
+
+  void _selectAllNotes(SelectAllNotes event, Emitter<NotesState> emit) {
+    final paginatedNoteIds = state.groupedNotes
+        .whereType<NoteMetaData>()
+        .map((n) => n.id)
+        .toList();
+    if (state.selectedNotes.length == paginatedNoteIds.length) {
+      emit(state.copyWith(selectedNotes: const [], isSelectionMode: false));
+    } else {
+      emit(
+        state.copyWith(selectedNotes: paginatedNoteIds, isSelectionMode: true),
+      );
+    }
+  }
+
+  void _clearSelection(ClearSelection event, Emitter<NotesState> emit) {
+    emit(state.copyWith(selectedNotes: const [], isSelectionMode: false));
   }
 
   String _getTimeLabelForNote(NoteMetaData note) {
@@ -187,21 +249,17 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
     final today = DateTime(now.year, now.month, now.day);
     final dateOnly = DateTime(updated.year, updated.month, updated.day);
     final daysAgo = today.difference(dateOnly).inDays;
+    final hoursAgo = now.difference(updated).inHours;
 
-    final thisWeekStart = today.subtract(Duration(days: now.weekday - 1));
-    final lastWeekStart = thisWeekStart.subtract(const Duration(days: 7));
-    final thisMonthStart = DateTime(now.year, now.month);
-    final lastMonthStart = DateTime(now.year, now.month - 1);
-
-    return switch (true) {
-      _ when now.difference(updated).inHours < 1 => "Recent",
+    final time = switch (true) {
+      _ when hoursAgo < 2 => "Recent",
       _ when daysAgo == 0 => "Today",
-      _ when daysAgo == 1 => "Yesterday",
-      _ when !dateOnly.isBefore(thisWeekStart) => "This Week",
-      _ when !dateOnly.isBefore(lastWeekStart) => "Last Week",
-      _ when !dateOnly.isBefore(thisMonthStart) => "This Month",
-      _ when !dateOnly.isBefore(lastMonthStart) => "Last Month",
+      _ when daysAgo <= 7 => "Last 7 Days",
+      _ when daysAgo <= 30 => "Last Month",
       _ => DateFormat("MMMM yyyy", state.localized).format(updated),
     };
+
+    AppLogger.i("Time label for note ${note.id}: $time $updated");
+    return time;
   }
 }

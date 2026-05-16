@@ -10,53 +10,63 @@ class HomeFloatingBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.end,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        BlocSelector<NotesBloc, NotesState, bool>(
-          selector: (state) => state.notes.isNotEmpty,
-          builder: (context, state) {
-            return FloatingActionButton.small(
-              mouseCursor: SystemMouseCursors.basic,
-              heroTag: 'search',
-              onPressed: null,
-              backgroundColor: NotesColors.bottomBarBg,
+    return BlocBuilder<NotesBloc, NotesState>(
+      buildWhen: (prev, curr) => prev.isSelectionMode != curr.isSelectionMode,
+      builder: (context, state) {
+        if (state.isSelectionMode) return const SizedBox.shrink();
+
+        return Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // TODO: In phase 2 it will be covered
+            // BlocSelector<NotesBloc, NotesState, bool>(
+            //   selector: (state) => state.notes.isNotEmpty,
+            //   builder: (context, hasNotes) {
+            //     return FloatingActionButton.small(
+            //       mouseCursor: SystemMouseCursors.basic,
+            //       heroTag: 'search',
+            //       onPressed: null,
+            //       backgroundColor: NotesColors.bottomBarBg,
+            //       shape: RoundedRectangleBorder(
+            //         borderRadius: BorderRadius.circular(4),
+            //         side: const BorderSide(
+            //           color: NotesColors.borderColor,
+            //           width: 0.5,
+            //         ),
+            //       ),
+            //       child: Image.asset(
+            //         NotesIcon.searchIcon,
+            //         width: 20,
+            //         height: 20,
+            //         color: Colors.white30,
+            //       ),
+            //     );
+            //   },
+            // ),
+
+            // const SizedBox(height: 12),
+
+            FloatingActionButton(
+              mouseCursor: SystemMouseCursors.click,
+              heroTag: 'create',
+              onPressed: () {
+                Navigator.pushNamed(context, '/note-editor');
+              },
+              backgroundColor: NotesColors.borderColor,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(4),
-                side: const BorderSide(
-                  color: NotesColors.borderColor,
-                  width: 0.5,
-                ),
               ),
               child: Image.asset(
-                NotesIcon.searchIcon,
-                width: 20,
-                height: 20,
-                color: Colors.white30,
+                NotesIcon.createIcon,
+                width: 28,
+                height: 28,
+                color: Colors.white,
               ),
-            );
-          },
-        ),
-
-        const SizedBox(height: 12),
-
-        FloatingActionButton(
-          mouseCursor: SystemMouseCursors.click,
-          heroTag: 'create',
-          onPressed: () {
-            Navigator.pushNamed(context, '/note-editor');
-          },
-          backgroundColor: NotesColors.borderColor,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-          child: Image.asset(
-            NotesIcon.createIcon,
-            width: 28,
-            height: 28,
-            color: Colors.white,
-          ),
-        ),
-      ],
+            ),
+          ],
+        );
+      },
     );
   }
 }

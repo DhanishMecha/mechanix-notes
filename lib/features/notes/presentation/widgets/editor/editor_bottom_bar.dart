@@ -5,7 +5,6 @@ import 'package:mechanix_notes/features/notes/bloc/editor/editor_bloc.dart';
 import 'package:mechanix_notes/features/notes/presentation/widgets/editor/editor_button.dart';
 import 'package:mechanix_notes/features/notes/presentation/widgets/editor/quill_controller_provider.dart';
 import 'package:mechanix_notes/features/notes/presentation/widgets/editor/toolbar/menu_toolbar.dart';
-import 'package:mechanix_notes/features/notes/presentation/widgets/editor/toolbar/options_toolbar.dart';
 import 'package:mechanix_notes/features/notes/presentation/widgets/editor/toolbar/text_style_toolbar.dart';
 
 class EditorBottomBar extends StatelessWidget {
@@ -44,12 +43,11 @@ class EditorBottomBar extends StatelessWidget {
           top: false,
           child: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (activeToolbar == EditorToolbar.textStyle)
                 const TextStyleToolbar(),
               if (activeToolbar == EditorToolbar.menu) const MenuToolbar(),
-              if (activeToolbar == EditorToolbar.options)
-                const OptionsToolbar(),
 
               Container(
                 height: 60,
@@ -85,15 +83,8 @@ class EditorBottomBar extends StatelessWidget {
                       asset: NotesIcon.menuIcon,
                       onPress: () => _toggle(context, EditorToolbar.menu),
                     ),
-                    EditorButton(
-                      size: 28,
-                      padding: const EdgeInsets.all(8),
-                      bgColor: activeToolbar == EditorToolbar.options
-                          ? const Color(0xFF2D2D2D)
-                          : Colors.transparent,
-                      asset: NotesIcon.threedotIcon,
-                      onPress: () => _toggle(context, EditorToolbar.options),
-                    ),
+
+                    const SizedBox(),
                   ],
                 ),
               ),

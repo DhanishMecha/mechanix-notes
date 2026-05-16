@@ -11,6 +11,8 @@ class NotesState extends Equatable {
   final String? error;
   final String localized;
   final bool isRefreshed;
+  final bool isSelectionMode;
+  final List<String> selectedNotes;
 
   static const int pageSize = 20;
 
@@ -24,6 +26,8 @@ class NotesState extends Equatable {
     this.error,
     this.localized = 'en',
     this.isRefreshed = false,
+    this.isSelectionMode = false,
+    this.selectedNotes = const [],
   });
 
   NotesState copyWith({
@@ -36,6 +40,8 @@ class NotesState extends Equatable {
     String? error,
     String? localized,
     bool? isRefreshed,
+    bool? isSelectionMode,
+    List<String>? selectedNotes,
   }) {
     return NotesState(
       notes: notes ?? this.notes,
@@ -47,6 +53,8 @@ class NotesState extends Equatable {
       error: error,
       localized: localized ?? this.localized,
       isRefreshed: isRefreshed ?? false,
+      isSelectionMode: isSelectionMode ?? this.isSelectionMode,
+      selectedNotes: selectedNotes ?? this.selectedNotes,
     );
   }
 
@@ -61,5 +69,7 @@ class NotesState extends Equatable {
     error,
     localized,
     isRefreshed,
+    isSelectionMode,
+    selectedNotes,
   ];
 }

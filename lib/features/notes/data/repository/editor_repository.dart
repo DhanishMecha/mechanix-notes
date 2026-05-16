@@ -7,5 +7,4 @@ abstract class EditorRepository {
 
   Future<void> updateNote(NoteModel note);
 
-  Future<void> deleteNote(String id);
 }
