@@ -23,6 +23,9 @@ class AppLocalizationsHi extends AppLocalizations {
       'नोट्स हटाने में विफल। कृपया पुन: प्रयास करें।';
 
   @override
+  String get appAlreadyRunning => 'ऐप का एक और इंस्टेंस पहले से ही चल रहा है।';
+
+  @override
   String get noteNotFound => 'नोट नहीं मिला';
 
   @override

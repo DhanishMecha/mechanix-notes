@@ -7,6 +7,7 @@ import 'package:mechanix_notes/features/notes/data/models/note_metadata.dart';
 import 'package:mechanix_notes/features/notes/data/models/time_group.dart';
 import 'package:mechanix_notes/features/notes/data/repository/note_repository.dart';
 import 'package:mechanix_notes/core/utils/enums.dart';
+import 'package:mechanix_notes/core/exceptions/app_exceptions.dart';
 
 class NotesBloc extends Bloc<NotesEvent, NotesState> {
   final NoteRepository noteRepository;
@@ -33,7 +34,6 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
       final firstPage = allNotes.take(NotesState.pageSize).toList();
       final flattened = _buildFlattenedNotes(firstPage);
       final hasMore = allNotes.length > NotesState.pageSize;
-
       AppLogger.i(
         "Notes loaded — ${allNotes.length} total, showing ${firstPage.length}",
       );
@@ -44,6 +44,14 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
           isLoading: false,
           hasMore: hasMore,
           currentPage: 0,
+        ),
+      );
+    } on AppAlreadyRunningException catch (e) {
+      AppLogger.e("App already running: $e");
+      emit(
+        state.copyWith(
+          isLoading: false,
+          error: ErrorCategory.appAlreadyRunning,
         ),
       );
     } catch (e) {

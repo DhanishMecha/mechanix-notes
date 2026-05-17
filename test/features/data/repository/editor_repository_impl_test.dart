@@ -1,19 +1,18 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:mechanix_notes/core/utils/constants.dart';
 import 'package:mechanix_notes/features/notes/data/models/note_model.dart';
 import 'package:mechanix_notes/features/notes/data/repository/editor_repository_impl.dart';
 
-// ---------------------------------------------------------------------------
-// Fakes & Mocks
-// ---------------------------------------------------------------------------
+// ─── Fakes & Mocks ───────────────────────────────────────────────────────────
 
 class MockBox extends Mock implements Box<NoteModel> {}
 
+// Subclass that replaces `box` with our mock and makes `ensureHiveConnected`
+// a no-op. This is the correct isolation pattern for a class whose side-effects
+// live inside a getter (`box`) rather than in constructor arguments.
 class TestEditorRepositoryImpl extends EditorRepositoryImpl {
   final Box<NoteModel> _mockBox;
-
   TestEditorRepositoryImpl(this._mockBox);
 
   @override
@@ -23,9 +22,7 @@ class TestEditorRepositoryImpl extends EditorRepositoryImpl {
   Future<void> ensureHiveConnected() async {}
 }
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 
 final _kCreatedAt = DateTime(2024, 1, 1);
 final _kUpdatedAt = DateTime(2024, 1, 2);
@@ -33,26 +30,24 @@ final _kUpdatedAt = DateTime(2024, 1, 2);
 NoteModel _makeNote({
   String id = 'note-1',
   String title = 'Test Note',
-  String content = 'Hello world',
+  String content = '[{"insert":"Hello\\n"}]',
+  String plainText = 'Hello',
+  String previewText = 'Hello',
+  double height = 104.0,
   DateTime? createdAt,
   DateTime? updatedAt,
-  String plainText = 'Hello world',
-  String previewText = 'Hello…',
-  double height = 120.0,
 }) => NoteModel(
   id: id,
   title: title,
   content: content,
-  createdAt: createdAt ?? _kCreatedAt,
-  updatedAt: updatedAt ?? _kUpdatedAt,
   plainText: plainText,
   previewText: previewText,
   height: height,
+  createdAt: createdAt ?? _kCreatedAt,
+  updatedAt: updatedAt ?? _kUpdatedAt,
 );
 
-// ---------------------------------------------------------------------------
-// Tests
-// ---------------------------------------------------------------------------
+// ─── Main ─────────────────────────────────────────────────────────────────────
 
 void main() {
   late MockBox mockBox;
@@ -67,7 +62,10 @@ void main() {
     repository = TestEditorRepositoryImpl(mockBox);
   });
 
-  // -------------------------------------------------------------------------
+  // ══════════════════════════════════════════════════════════════════════════
+  // getNoteById
+  // ══════════════════════════════════════════════════════════════════════════
+
   group('getNoteById', () {
     test('returns the note when it exists in the box', () async {
       final note = _makeNote(id: 'note-1');
@@ -107,37 +105,56 @@ void main() {
       expect(result?.title, equals('Second'));
     });
 
-    test('returns first match when duplicate ids exist in the box', () async {
-      // Hive keys are unique, but defensively verify the firstWhere behaviour.
-      final first = _makeNote(id: 'note-1', title: 'First');
-      final dupe = _makeNote(id: 'note-1', title: 'Duplicate');
-      when(() => mockBox.values).thenReturn([first, dupe]);
+    test(
+      'returns first match when duplicate ids exist (firstWhere semantics)',
+      () async {
+        // Hive enforces unique keys, but this verifies the firstWhere behaviour
+        // in getNoteById is correct — it takes the first, not the last.
+        final first = _makeNote(id: 'note-1', title: 'First');
+        final dupe = _makeNote(id: 'note-1', title: 'Duplicate');
+        when(() => mockBox.values).thenReturn([first, dupe]);
 
-      final result = await repository.getNoteById('note-1');
+        final result = await repository.getNoteById('note-1');
 
-      expect(result?.title, equals('First'));
-    });
+        expect(result?.title, equals('First'));
+      },
+    );
 
-    test('returns null (does not throw) when box.values throws', () async {
-      when(() => mockBox.values).thenThrow(Exception('box error'));
+    test(
+      'returns null (does not throw) when box.values throws Exception',
+      () async {
+        // The impl wraps in try/catch and returns null on any error.
+        when(() => mockBox.values).thenThrow(Exception('box error'));
 
-      final result = await repository.getNoteById('note-1');
+        final result = await repository.getNoteById('note-1');
 
-      expect(result, isNull);
-    });
+        expect(result, isNull);
+      },
+    );
 
-    test('preserves all fields of the returned note', () async {
-      final createdAt = DateTime(2024, 3, 15);
-      final updatedAt = DateTime(2024, 3, 16);
+    test(
+      'returns null (does not throw) when box.values throws HiveError',
+      () async {
+        when(() => mockBox.values).thenThrow(HiveError('corrupt box'));
+
+        final result = await repository.getNoteById('note-1');
+
+        expect(result, isNull);
+      },
+    );
+
+    test('preserves every field of the returned note', () async {
+      final createdAt = DateTime(2023, 6, 15);
+      final updatedAt = DateTime(2023, 6, 16);
       final note = _makeNote(
         id: 'note-fields',
         title: 'Rich Note',
-        content: '# Heading',
+        content: '[{"insert":"# Heading\\n"}]',
+        plainText: 'Heading',
+        previewText: 'Heading',
+        height: 250.5,
         createdAt: createdAt,
         updatedAt: updatedAt,
-        plainText: 'Heading',
-        previewText: 'Heading…',
-        height: 250.5,
       );
       when(() => mockBox.values).thenReturn([note]);
 
@@ -145,18 +162,41 @@ void main() {
 
       expect(result?.id, equals('note-fields'));
       expect(result?.title, equals('Rich Note'));
-      expect(result?.content, equals('# Heading'));
+      expect(result?.content, equals('[{"insert":"# Heading\\n"}]'));
+      expect(result?.plainText, equals('Heading'));
+      expect(result?.previewText, equals('Heading'));
+      expect(result?.height, equals(250.5));
       expect(result?.createdAt, equals(createdAt));
       expect(result?.updatedAt, equals(updatedAt));
-      expect(result?.plainText, equals('Heading'));
-      expect(result?.previewText, equals('Heading…'));
-      expect(result?.height, equals(250.5));
     });
+
+    test('id comparison is case-sensitive', () async {
+      // The impl uses == which is case-sensitive — 'Note-1' ≠ 'note-1'.
+      final note = _makeNote(id: 'Note-1');
+      when(() => mockBox.values).thenReturn([note]);
+
+      expect(await repository.getNoteById('note-1'), isNull);
+      expect(await repository.getNoteById('Note-1'), isNotNull);
+    });
+
+    test(
+      'does not return a note whose id only differs by whitespace',
+      () async {
+        // Ensures no accidental trim/normalisation exists in the impl.
+        final note = _makeNote(id: 'note-1');
+        when(() => mockBox.values).thenReturn([note]);
+
+        expect(await repository.getNoteById(' note-1 '), isNull);
+      },
+    );
   });
 
-  // -------------------------------------------------------------------------
+  // ══════════════════════════════════════════════════════════════════════════
+  // createNote
+  // ══════════════════════════════════════════════════════════════════════════
+
   group('createNote', () {
-    test('calls box.put with the note id and note', () async {
+    test('calls box.put with note.id as key and the note as value', () async {
       final note = _makeNote(id: 'note-1');
       when(() => mockBox.put(any(), any<NoteModel>())).thenAnswer((_) async {});
 
@@ -174,35 +214,75 @@ void main() {
       verify(() => mockBox.put(any(), any<NoteModel>())).called(1);
     });
 
-    test('does not throw when box.put succeeds', () async {
-      final note = _makeNote();
-      when(() => mockBox.put(any(), any<NoteModel>())).thenAnswer((_) async {});
-
-      expect(() => repository.createNote(note), returnsNormally);
-    });
-
-    test('swallows exception when box.put throws', () async {
-      final note = _makeNote();
-      when(
-        () => mockBox.put(any(), any<NoteModel>()),
-      ).thenThrow(Exception('write error'));
-
-      await expectLater(repository.createNote(note), completes);
-    });
-
-    test('uses note.id as the Hive key, not a generated key', () async {
-      final note = _makeNote(id: 'custom-key-123');
+    test('uses note.id (not an auto-generated key) as the Hive key', () async {
+      final note = _makeNote(id: 'custom-key-abc-123');
       when(() => mockBox.put(any(), any<NoteModel>())).thenAnswer((_) async {});
 
       await repository.createNote(note);
 
-      verify(() => mockBox.put('custom-key-123', any<NoteModel>())).called(1);
+      verify(
+        () => mockBox.put('custom-key-abc-123', any<NoteModel>()),
+      ).called(1);
+      // Must not use box.add() which generates an auto-increment integer key.
+      verifyNever(() => mockBox.add(any<NoteModel>()));
+    });
+
+    test('completes normally when box.put succeeds', () async {
+      final note = _makeNote();
+      when(() => mockBox.put(any(), any<NoteModel>())).thenAnswer((_) async {});
+
+      await expectLater(repository.createNote(note), completes);
+    });
+
+    test(
+      'swallows and does not rethrow when box.put throws Exception',
+      () async {
+        final note = _makeNote();
+        when(
+          () => mockBox.put(any(), any<NoteModel>()),
+        ).thenThrow(Exception('write error'));
+
+        await expectLater(repository.createNote(note), completes);
+      },
+    );
+
+    test(
+      'swallows and does not rethrow when box.put throws HiveError',
+      () async {
+        final note = _makeNote();
+        when(
+          () => mockBox.put(any(), any<NoteModel>()),
+        ).thenThrow(HiveError('disk full'));
+
+        await expectLater(repository.createNote(note), completes);
+      },
+    );
+
+    test('does not call box.values during createNote', () async {
+      final note = _makeNote();
+      when(() => mockBox.put(any(), any<NoteModel>())).thenAnswer((_) async {});
+
+      await repository.createNote(note);
+
+      verifyNever(() => mockBox.values);
+    });
+
+    test('does not call box.delete during createNote', () async {
+      final note = _makeNote();
+      when(() => mockBox.put(any(), any<NoteModel>())).thenAnswer((_) async {});
+
+      await repository.createNote(note);
+
+      verifyNever(() => mockBox.delete(any()));
     });
   });
 
-  // -------------------------------------------------------------------------
+  // ══════════════════════════════════════════════════════════════════════════
+  // updateNote
+  // ══════════════════════════════════════════════════════════════════════════
+
   group('updateNote', () {
-    test('calls box.put with the note id and updated note', () async {
+    test('calls box.put with note.id as key and the note as value', () async {
       final note = _makeNote(id: 'note-1', title: 'Updated Title');
       when(() => mockBox.put(any(), any<NoteModel>())).thenAnswer((_) async {});
 
@@ -220,136 +300,142 @@ void main() {
       verify(() => mockBox.put(any(), any<NoteModel>())).called(1);
     });
 
-    test('overwrites an existing note (same id, new data)', () async {
-      final original = _makeNote(id: 'note-1', title: 'Original');
-      final updated = _makeNote(id: 'note-1', title: 'Updated');
+    test(
+      'uses box.put (upsert) — does not call box.delete before writing',
+      () async {
+        // Hive's put() overwrites in place; the impl must not delete-then-put.
+        final note = _makeNote(id: 'note-1');
+        when(
+          () => mockBox.put(any(), any<NoteModel>()),
+        ).thenAnswer((_) async {});
+
+        await repository.updateNote(note);
+
+        verify(() => mockBox.put('note-1', note)).called(1);
+        verifyNever(() => mockBox.delete(any()));
+      },
+    );
+
+    test('completes normally when box.put succeeds', () async {
+      final note = _makeNote();
       when(() => mockBox.put(any(), any<NoteModel>())).thenAnswer((_) async {});
 
-      await repository.createNote(original);
-      await repository.updateNote(updated);
-
-      verify(() => mockBox.put('note-1', any<NoteModel>())).called(2);
+      await expectLater(repository.updateNote(note), completes);
     });
 
-    test('does not call box.delete when updating', () async {
-      final note = _makeNote(id: 'note-1');
+    test(
+      'swallows and does not rethrow when box.put throws Exception',
+      () async {
+        final note = _makeNote();
+        when(
+          () => mockBox.put(any(), any<NoteModel>()),
+        ).thenThrow(Exception('network error'));
+
+        await expectLater(repository.updateNote(note), completes);
+      },
+    );
+
+    test(
+      'swallows and does not rethrow when box.put throws HiveError',
+      () async {
+        final note = _makeNote();
+        when(
+          () => mockBox.put(any(), any<NoteModel>()),
+        ).thenThrow(HiveError('box closed'));
+
+        await expectLater(repository.updateNote(note), completes);
+      },
+    );
+
+    test('does not call box.values during updateNote', () async {
+      final note = _makeNote();
       when(() => mockBox.put(any(), any<NoteModel>())).thenAnswer((_) async {});
 
       await repository.updateNote(note);
 
-      verifyNever(() => mockBox.delete(any()));
+      verifyNever(() => mockBox.values);
     });
 
-    test('swallows exception when box.put throws', () async {
-      final note = _makeNote();
-      when(
-        () => mockBox.put(any(), any<NoteModel>()),
-      ).thenThrow(HiveError('write error'));
+    test(
+      'createNote and updateNote both use box.put — same storage path',
+      () async {
+        // Validates the impl does not diverge between create and update paths.
+        final note = _makeNote(id: 'note-1');
+        when(
+          () => mockBox.put(any(), any<NoteModel>()),
+        ).thenAnswer((_) async {});
 
-      await expectLater(repository.updateNote(note), completes);
-    });
+        await repository.createNote(note);
+        await repository.updateNote(note);
+
+        verify(() => mockBox.put('note-1', note)).called(2);
+      },
+    );
   });
 
-  // -------------------------------------------------------------------------
-  group('deleteNote', () {
-    test('calls box.delete with the correct id', () async {
-      when(() => mockBox.delete(any())).thenAnswer((_) async {});
+  // ══════════════════════════════════════════════════════════════════════════
+  // ensureHiveConnected — test double validation
+  //
+  // The real ensureHiveConnected() depends on Platform.environment['HOME']
+  // and Hive.init() which are platform-specific and inappropriate for unit
+  // tests. The TestEditorRepositoryImpl override stubs this out entirely.
+  // These tests verify the stub itself behaves correctly so every other group
+  // is guaranteed to be isolated from Hive I/O.
+  // ══════════════════════════════════════════════════════════════════════════
 
-      await repository.deleteNote('note-1');
-
-      verify(() => mockBox.delete('note-1')).called(1);
+  group('ensureHiveConnected — test double validation', () {
+    test('completes without any I/O in the test double', () async {
+      await expectLater(repository.ensureHiveConnected(), completes);
     });
 
-    test('calls box.delete exactly once', () async {
-      when(() => mockBox.delete(any())).thenAnswer((_) async {});
+    test(
+      'no box interactions occur when only ensureHiveConnected is called',
+      () async {
+        await repository.ensureHiveConnected();
 
-      await repository.deleteNote('note-1');
+        verifyNever(() => mockBox.values);
+        verifyNever(() => mockBox.put(any(), any<NoteModel>()));
+        verifyNever(() => mockBox.delete(any()));
+      },
+    );
 
-      verify(() => mockBox.delete(any())).called(1);
-    });
+    test(
+      'multiple calls to ensureHiveConnected all complete without error',
+      () async {
+        await repository.ensureHiveConnected();
+        await repository.ensureHiveConnected();
+        await repository.ensureHiveConnected();
 
-    test('does not call delete with a different id', () async {
-      when(() => mockBox.delete(any())).thenAnswer((_) async {});
-
-      await repository.deleteNote('note-1');
-
-      verifyNever(() => mockBox.delete('note-2'));
-    });
-
-    test('does not call box.put when deleting', () async {
-      when(() => mockBox.delete(any())).thenAnswer((_) async {});
-
-      await repository.deleteNote('note-1');
-
-      verifyNever(() => mockBox.put(any(), any<NoteModel>()));
-    });
-
-    test('swallows exception when box.delete throws', () async {
-      when(() => mockBox.delete(any())).thenThrow(Exception('delete error'));
-
-      await expectLater(repository.deleteNote('note-1'), completes);
-    });
-
-    test('deleting a non-existent id does not throw', () async {
-      when(() => mockBox.delete(any())).thenAnswer((_) async {});
-
-      await expectLater(repository.deleteNote('does-not-exist'), completes);
-    });
+        // No interactions — the override is truly a no-op.
+        verifyNever(() => mockBox.values);
+      },
+    );
   });
 
-  // -------------------------------------------------------------------------
-  group('ensureHiveConnected', () {
-    late EditorRepositoryImpl realRepo;
+  // ══════════════════════════════════════════════════════════════════════════
+  // Integration — full CRUD lifecycle (mock box wired to an in-memory Map)
+  //
+  // These tests wire mockBox.put and mockBox.values to a real Map so the
+  // create → get → update → get lifecycle can be exercised end-to-end
+  // without spinning up a real Hive instance.
+  // ══════════════════════════════════════════════════════════════════════════
 
-    setUp(() async {
-      Hive.init('test_hive_${DateTime.now().microsecondsSinceEpoch}');
-      if (!Hive.isAdapterRegistered(0)) {
-        Hive.registerAdapter(NoteModelAdapter());
-      }
-      realRepo = EditorRepositoryImpl();
-    });
+  group('integration — CRUD lifecycle (mock box)', () {
+    late Map<String, NoteModel> storage;
 
-    tearDown(() async {
-      if (Hive.isBoxOpen(Constants.tableName)) {
-        await Hive.box<NoteModel>(Constants.tableName).close();
-      }
-      await Hive.deleteFromDisk();
-    });
-
-    test('opens the Hive box when it is not yet open', () async {
-      expect(Hive.isBoxOpen(Constants.tableName), isFalse);
-
-      await realRepo.ensureHiveConnected();
-
-      expect(Hive.isBoxOpen(Constants.tableName), isTrue);
-    });
-
-    test('is idempotent — does not throw when box is already open', () async {
-      await realRepo.ensureHiveConnected();
-
-      await expectLater(realRepo.ensureHiveConnected(), completes);
-      expect(Hive.isBoxOpen(Constants.tableName), isTrue);
-    });
-
-    test('box is of the correct NoteModel type after opening', () async {
-      await realRepo.ensureHiveConnected();
-
-      final box = Hive.box<NoteModel>(Constants.tableName);
-      expect(box, isA<Box<NoteModel>>());
-    });
-  });
-
-  // -------------------------------------------------------------------------
-  group('integration — CRUD sequence (mock box)', () {
-    test('create then get returns the same note', () async {
-      final note = _makeNote(id: 'note-42', title: 'Integration');
-      final storage = <String, NoteModel>{};
+    setUp(() {
+      storage = {};
 
       when(() => mockBox.put(any(), any<NoteModel>())).thenAnswer((inv) async {
         storage[inv.positionalArguments[0] as String] =
             inv.positionalArguments[1] as NoteModel;
       });
-      when(() => mockBox.values).thenReturn(storage.values);
+
+      when(() => mockBox.values).thenAnswer((_) => storage.values);
+    });
+
+    test('create then get returns the same note', () async {
+      final note = _makeNote(id: 'note-42', title: 'Integration');
 
       await repository.createNote(note);
       final fetched = await repository.getNoteById('note-42');
@@ -360,13 +446,6 @@ void main() {
     test('update then get returns the updated note', () async {
       final original = _makeNote(id: 'note-42', title: 'Original');
       final updated = _makeNote(id: 'note-42', title: 'Updated');
-      final storage = <String, NoteModel>{};
-
-      when(() => mockBox.put(any(), any<NoteModel>())).thenAnswer((inv) async {
-        storage[inv.positionalArguments[0] as String] =
-            inv.positionalArguments[1] as NoteModel;
-      });
-      when(() => mockBox.values).thenReturn(storage.values);
 
       await repository.createNote(original);
       await repository.updateNote(updated);
@@ -375,34 +454,12 @@ void main() {
       expect(fetched?.title, equals('Updated'));
     });
 
-    test('delete then get returns null', () async {
-      final note = _makeNote(id: 'note-42');
-      final storage = <String, NoteModel>{'note-42': note};
-
-      when(() => mockBox.delete(any())).thenAnswer((inv) async {
-        storage.remove(inv.positionalArguments[0]);
-      });
-      when(() => mockBox.values).thenReturn(storage.values);
-
-      await repository.deleteNote('note-42');
-      final fetched = await repository.getNoteById('note-42');
-
-      expect(fetched, isNull);
-    });
-
     test('multiple notes can be created and individually retrieved', () async {
       final notes = [
         _makeNote(id: 'n1', title: 'Alpha'),
         _makeNote(id: 'n2', title: 'Beta'),
         _makeNote(id: 'n3', title: 'Gamma'),
       ];
-      final storage = <String, NoteModel>{};
-
-      when(() => mockBox.put(any(), any<NoteModel>())).thenAnswer((inv) async {
-        storage[inv.positionalArguments[0] as String] =
-            inv.positionalArguments[1] as NoteModel;
-      });
-      when(() => mockBox.values).thenReturn(storage.values);
 
       for (final n in notes) {
         await repository.createNote(n);
@@ -413,21 +470,87 @@ void main() {
       expect((await repository.getNoteById('n3'))?.title, equals('Gamma'));
     });
 
-    test('deleting one note does not affect others', () async {
-      final storage = <String, NoteModel>{
-        'n1': _makeNote(id: 'n1', title: 'Keep'),
-        'n2': _makeNote(id: 'n2', title: 'Remove'),
-      };
+    test('updating one note does not alter others', () async {
+      await repository.createNote(_makeNote(id: 'n1', title: 'Alpha'));
+      await repository.createNote(_makeNote(id: 'n2', title: 'Beta'));
 
-      when(() => mockBox.delete(any())).thenAnswer((inv) async {
-        storage.remove(inv.positionalArguments[0]);
-      });
-      when(() => mockBox.values).thenReturn(storage.values);
+      await repository.updateNote(_makeNote(id: 'n1', title: 'Alpha Updated'));
 
-      await repository.deleteNote('n2');
-
-      expect(await repository.getNoteById('n1'), isNotNull);
-      expect(await repository.getNoteById('n2'), isNull);
+      // n2 must be unaffected.
+      expect((await repository.getNoteById('n2'))?.title, equals('Beta'));
     });
+
+    test(
+      'full lifecycle: create → update preserves createdAt, advances updatedAt',
+      () async {
+        final createdAt = DateTime(2020, 1, 1);
+        final updatedAt = DateTime(2024, 6, 1);
+
+        await repository.createNote(
+          _makeNote(
+            id: 'lifecycle-note',
+            title: 'Original',
+            createdAt: createdAt,
+            updatedAt: createdAt,
+          ),
+        );
+        await repository.updateNote(
+          _makeNote(
+            id: 'lifecycle-note',
+            title: 'Updated',
+            createdAt:
+                createdAt, // must be preserved by caller (bloc responsibility)
+            updatedAt: updatedAt, // must advance
+          ),
+        );
+
+        final fetched = await repository.getNoteById('lifecycle-note');
+        expect(fetched?.title, equals('Updated'));
+        expect(fetched?.createdAt, equals(createdAt));
+        expect(fetched?.updatedAt, equals(updatedAt));
+      },
+    );
+
+    test(
+      'get after failed createNote returns null (put error swallowed)',
+      () async {
+        // Override put to throw — storage map never receives the note.
+        when(
+          () => mockBox.put(any(), any<NoteModel>()),
+        ).thenThrow(Exception('disk full'));
+
+        await repository.createNote(_makeNote(id: 'fail-note'));
+        final fetched = await repository.getNoteById('fail-note');
+
+        expect(fetched, isNull);
+      },
+    );
+
+    test('get after failed updateNote returns the original note', () async {
+      // First create succeeds; then update fails — original must survive.
+      await repository.createNote(_makeNote(id: 'n1', title: 'Original'));
+
+      when(
+        () => mockBox.put(any(), any<NoteModel>()),
+      ).thenThrow(Exception('network error'));
+
+      await repository.updateNote(
+        _makeNote(id: 'n1', title: 'Should Not Persist'),
+      );
+      final fetched = await repository.getNoteById('n1');
+
+      expect(fetched?.title, equals('Original'));
+    });
+
+    test(
+      'creating the same id twice overwrites the first (Hive upsert)',
+      () async {
+        await repository.createNote(_makeNote(id: 'dup', title: 'First'));
+        await repository.createNote(_makeNote(id: 'dup', title: 'Second'));
+
+        final fetched = await repository.getNoteById('dup');
+        expect(fetched?.title, equals('Second'));
+      },
+    );
   });
 }

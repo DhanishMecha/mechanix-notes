@@ -40,6 +40,8 @@ String localizeError(BuildContext context, ErrorCategory error) {
       return AppLocalizations.of(context)!.failedToLoadNotes;
     case ErrorCategory.failedToDeleteNotes:
       return AppLocalizations.of(context)!.failedToDeleteNotes;
+    case ErrorCategory.appAlreadyRunning:
+      return AppLocalizations.of(context)!.appAlreadyRunning;
     case ErrorCategory.unknown:
     default:
       return AppLocalizations.of(context)!.somethingWentWrong;

@@ -7,6 +7,7 @@ import 'package:mechanix_notes/core/utils/constants.dart';
 import 'package:mechanix_notes/features/notes/data/models/note_metadata.dart';
 import 'package:mechanix_notes/features/notes/data/models/note_model.dart';
 import 'package:mechanix_notes/features/notes/data/repository/note_repository.dart';
+import 'package:mechanix_notes/core/exceptions/app_exceptions.dart';
 
 class NoteRepositoryImpl extends NoteRepository {
   Box<NoteModel> get box => Hive.box<NoteModel>(Constants.tableName);
@@ -19,6 +20,10 @@ class NoteRepositoryImpl extends NoteRepository {
       }
     } catch (e) {
       AppLogger.e('Failed to open Hive box: $e');
+      if (e is FileSystemException && e.message.contains('lock failed')) {
+        throw AppAlreadyRunningException();
+      }
+      rethrow;
     }
   }
 
@@ -68,6 +73,8 @@ class NoteRepositoryImpl extends NoteRepository {
       AppLogger.i("Fetched all notes → total: ${sortedNotes.length}");
 
       return sortedNotes;
+    } on AppAlreadyRunningException catch (_) {
+      rethrow;
     } catch (e) {
       AppLogger.e('Failed to fetch notes: $e');
       return [];

@@ -17,5 +17,6 @@ enum ErrorCategory {
   failedToSaveNote,
   failedToLoadNotes,
   failedToDeleteNotes,
+  appAlreadyRunning,
   unknown,
 }

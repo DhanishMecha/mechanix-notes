@@ -21,6 +21,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get failedToDeleteNotes => 'Failed to delete notes. Please try again.';
 
   @override
+  String get appAlreadyRunning =>
+      'Another instance of the app is already running.';
+
+  @override
   String get noteNotFound => 'Note not found';
 
   @override

@@ -122,6 +122,12 @@ abstract class AppLocalizations {
   /// **'Failed to delete notes. Please try again.'**
   String get failedToDeleteNotes;
 
+  /// No description provided for @appAlreadyRunning.
+  ///
+  /// In en, this message translates to:
+  /// **'Another instance of the app is already running.'**
+  String get appAlreadyRunning;
+
   /// No description provided for @noteNotFound.
   ///
   /// In en, this message translates to:

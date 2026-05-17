@@ -1,0 +1,65 @@
+import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:hive/hive.dart';
+import 'package:mechanix_notes/features/notes/data/models/note_model.dart';
+import 'package:mechanix_notes/features/notes/presentation/widgets/editor/editor_button.dart';
+import 'package:flutter_quill/flutter_quill.dart' show QuillEditor;
+
+class IntegrationTestHelper {
+  String? tempPath;
+
+  Future<void> setUp() async {
+    try {
+      if (!Hive.isAdapterRegistered(0)) {
+        Hive.registerAdapter(NoteModelAdapter());
+      }
+    } catch (_) {}
+
+    final directory = await Directory.systemTemp.createTemp('mechanix_notes_test_');
+    tempPath = directory.path;
+    Hive.init(tempPath);
+  }
+
+  Future<void> tearDown() async {
+    if (tempPath != null) {
+      final directory = Directory(tempPath!);
+      if (await directory.exists()) {
+        await directory.delete(recursive: true);
+      }
+    }
+  }
+
+  static Finder findEditorButton(String asset) {
+    return find.byWidgetPredicate(
+      (widget) => widget is EditorButton && widget.asset == asset,
+    ).last;
+  }
+
+  static Finder findImageAsset(String asset) {
+    return find.byWidgetPredicate(
+      (widget) =>
+          widget is Image &&
+          widget.image is AssetImage &&
+          (widget.image as AssetImage).assetName == asset,
+    ).last;
+  }
+
+  static Future<void> waitForEditor(WidgetTester tester) async {
+    int retry = 0;
+    while (find.byType(TextField).evaluate().isEmpty && retry < 15) {
+      await tester.pump(const Duration(milliseconds: 200));
+      retry++;
+    }
+  }
+
+  static Future<void> enterQuillText(WidgetTester tester, String text) async {
+    final quillEditorFinder = find.byType(QuillEditor);
+    try {
+      await tester.enterText(quillEditorFinder, text);
+    } catch (e) {
+      final editorWidget = tester.widget<QuillEditor>(quillEditorFinder);
+      editorWidget.controller.document.insert(0, text);
+    }
+  }
+}

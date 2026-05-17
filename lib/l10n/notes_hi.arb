@@ -3,6 +3,7 @@
   "last7Days": "पिछले 7 दिन",
   "failedToLoadNotes": "नोट्स लोड करने में विफल। कृपया पुन: प्रयास करें।",
   "failedToDeleteNotes": "नोट्स हटाने में विफल। कृपया पुन: प्रयास करें।",
+  "appAlreadyRunning": "ऐप का एक और इंस्टेंस पहले से ही चल रहा है।",
   "noteNotFound": "नोट नहीं मिला",
   "recent": "हाल ही में",
   "noNotesFound": "कोई नोट्स नहीं मिले",

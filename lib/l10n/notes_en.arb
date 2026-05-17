@@ -3,6 +3,7 @@
   "last7Days": "Last 7 Days",
   "failedToLoadNotes": "Failed to load notes. Please try again.",
   "failedToDeleteNotes": "Failed to delete notes. Please try again.",
+  "appAlreadyRunning": "Another instance of the app is already running.",
   "noteNotFound": "Note not found",
   "noNotesFound": "No notes found",
   "recent": "Recent",
