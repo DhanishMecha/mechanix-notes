@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:mechanix_notes/features/notes/data/models/note_metadata.dart';
+import 'package:mechanix_notes/core/utils/enums.dart';
 
 class NotesState extends Equatable {
   final List<NoteMetaData> notes;
@@ -8,7 +9,7 @@ class NotesState extends Equatable {
   final bool isLoadingMore;
   final bool hasMore;
   final int currentPage;
-  final String? error;
+  final ErrorCategory? error;
   final String localized;
   final bool isRefreshed;
   final bool isSelectionMode;
@@ -37,7 +38,7 @@ class NotesState extends Equatable {
     bool? isLoadingMore,
     bool? hasMore,
     int? currentPage,
-    String? error,
+    ErrorCategory? error,
     String? localized,
     bool? isRefreshed,
     bool? isSelectionMode,

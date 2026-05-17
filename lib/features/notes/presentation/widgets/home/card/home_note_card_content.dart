@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:mechanix_notes/core/utils/app_logger.dart';
 import 'package:mechanix_notes/core/utils/colors.dart';
 import 'package:mechanix_notes/core/widgets/clickable_region.dart';
 import 'package:mechanix_notes/features/notes/data/models/note_metadata.dart';
 import 'package:mechanix_notes/features/notes/presentation/widgets/home/card/home_card_icon.dart';
 import 'package:mechanix_notes/features/notes/presentation/widgets/home/card/home_card_selection_icon.dart';
+import 'package:mechanix_notes/l10n/notes_localizations.dart';
 
 class HomeNoteCardContent extends StatelessWidget {
   final NoteMetaData note;
@@ -91,7 +91,7 @@ class _HomeNoteCardText extends StatelessWidget {
         ),
         const SizedBox(height: 6),
         Text(
-          _formatDate(note.updatedAt),
+          _formatDate(context, note.updatedAt),
           style: const TextStyle(
             color: NotesColors.timeLabelColor,
             fontSize: 14,
@@ -101,24 +101,19 @@ class _HomeNoteCardText extends StatelessWidget {
     );
   }
 
-  String _formatDate(DateTime date) {
+  String _formatDate(BuildContext context, DateTime date) {
     final now = DateTime.now();
     final difference = now.difference(date);
 
-    AppLogger.i(
-      "Format date for note ${note.title.isNotEmpty ? note.title : note.previewText}: $difference, Current: $now, Note: $date",
-    );
-
     final isToday =
         date.year == now.year && date.month == now.month && date.day == now.day;
-
     if (isToday) {
       if (difference.inMinutes < 1) {
-        return "Just now";
+        return AppLocalizations.of(context)!.justNow;
       } else if (difference.inMinutes < 60) {
-        return "${difference.inMinutes} m ago";
+        return AppLocalizations.of(context)!.minutesAgo(difference.inMinutes);
       } else {
-        return "${difference.inHours} h ago";
+        return AppLocalizations.of(context)!.hoursAgo(difference.inHours);
       }
     }
 

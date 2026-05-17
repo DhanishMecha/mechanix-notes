@@ -24,7 +24,7 @@ class HomeTitleBar extends StatelessWidget {
             children: [
               if (state.isSelectionMode)
                 Text(
-                  '$count ${count > 1 ? 'notes' : 'note'} selected',
+                  AppLocalizations.of(context)!.notesSelected(count),
                   style: const TextStyle(
                     color: NotesColors.appTitleColor,
                     fontSize: 20,

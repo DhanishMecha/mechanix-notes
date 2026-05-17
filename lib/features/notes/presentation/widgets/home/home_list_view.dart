@@ -5,6 +5,7 @@ import 'package:mechanix_notes/features/notes/bloc/notes/notes_bloc.dart';
 import 'package:mechanix_notes/features/notes/bloc/notes/notes_event.dart';
 import 'package:mechanix_notes/features/notes/bloc/notes/notes_state.dart';
 import 'package:mechanix_notes/features/notes/data/models/note_metadata.dart';
+import 'package:mechanix_notes/features/notes/data/models/time_group.dart';
 import 'package:mechanix_notes/features/notes/presentation/widgets/home/home_group_label.dart';
 import 'package:mechanix_notes/features/notes/presentation/widgets/home/home_note_card.dart';
 
@@ -38,7 +39,10 @@ class _HomeListViewState extends State<HomeListView> {
     final position = _scrollController.position;
     // Trigger when within 200 px of the bottom
     if (position.pixels >= position.maxScrollExtent - 200) {
-      context.read<NotesBloc>().add(LoadMoreNotes());
+      final state = context.read<NotesBloc>().state;
+      if (!state.isLoadingMore && state.hasMore) {
+        context.read<NotesBloc>().add(LoadMoreNotes());
+      }
     }
   }
 
@@ -70,8 +74,8 @@ class _HomeListViewState extends State<HomeListView> {
                 prototypeItem: const SizedBox(height: 68.0),
                 itemBuilder: (context, index) {
                   final item = widget.groupedNotes[index];
-                  if (item is String) {
-                    return HomeGroupHeader(key: ValueKey(item), label: item);
+                  if (item is TimeGroup) {
+                    return HomeGroupHeader(key: ValueKey(item), group: item);
                   }
                   if (item is NoteMetaData) {
                     return HomeNoteCard(key: ValueKey(item.id), note: item);

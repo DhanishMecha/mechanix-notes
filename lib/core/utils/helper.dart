@@ -1,23 +1,47 @@
 import 'package:flutter/material.dart';
+import 'package:mechanix_notes/features/notes/data/models/time_group.dart';
 import 'package:mechanix_notes/l10n/notes_localizations.dart';
+import 'package:mechanix_notes/core/utils/enums.dart';
 
-String getLocalizedLabelForTimeNotes(BuildContext context, String label) {
-  switch (label) {
-    case "Recent":
+String getLocalizedLabelForTimeNotes(BuildContext context, TimeGroup group) {
+  switch (group.category) {
+    case TimeCategory.recent:
       return AppLocalizations.of(context)!.recent;
-    case "Today":
+    case TimeCategory.today:
       return AppLocalizations.of(context)!.today;
-    case "Yesterday":
+    case TimeCategory.yesterday:
       return AppLocalizations.of(context)!.yesterday;
-    case "This Week":
+    case TimeCategory.last7Days:
+      return AppLocalizations.of(context)!.last7Days;
+    case TimeCategory.thisWeek:
       return AppLocalizations.of(context)!.thisWeek;
-    case "Last Week":
+    case TimeCategory.lastWeek:
       return AppLocalizations.of(context)!.lastWeek;
-    case "This Month":
+    case TimeCategory.thisMonth:
       return AppLocalizations.of(context)!.thisMonth;
-    case "Last Month":
+    case TimeCategory.lastMonth:
       return AppLocalizations.of(context)!.lastMonth;
+    case TimeCategory.custom:
+      return group.customLabel ?? '';
     default:
-      return label;
+      return '';
+  }
+}
+
+String localizeError(BuildContext context, ErrorCategory error) {
+  switch (error) {
+    case ErrorCategory.noteNotFound:
+      return AppLocalizations.of(context)!.noteNotFound;
+    case ErrorCategory.somethingWentWrong:
+      return AppLocalizations.of(context)!.somethingWentWrong;
+    case ErrorCategory.failedToSaveNote:
+      return AppLocalizations.of(context)!.failedToSaveNote;
+    case ErrorCategory.failedToLoadNotes:
+      return AppLocalizations.of(context)!.failedToLoadNotes;
+    case ErrorCategory.failedToDeleteNotes:
+      return AppLocalizations.of(context)!.failedToDeleteNotes;
+    case ErrorCategory.unknown:
+    default:
+      return AppLocalizations.of(context)!.somethingWentWrong;
   }
 }

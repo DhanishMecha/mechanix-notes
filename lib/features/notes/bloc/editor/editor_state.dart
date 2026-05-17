@@ -53,8 +53,8 @@ final class EditorLoaded extends EditorState {
 }
 
 final class EditorFailure extends EditorState {
-  final String message;
-  EditorFailure(this.message);
+  final ErrorCategory error;
+  EditorFailure(this.error);
 }
 
 final class EditorSaveSuccess extends EditorState {

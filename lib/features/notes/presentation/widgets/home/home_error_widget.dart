@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:mechanix_notes/core/utils/helper.dart';
+import 'package:mechanix_notes/core/utils/enums.dart';
 
 class HomeErrorView extends StatelessWidget {
-  const HomeErrorView({super.key, required this.message});
+  const HomeErrorView({super.key, required this.error});
 
-  final String message;
+  final ErrorCategory error;
 
   @override
   Widget build(BuildContext context) {
@@ -11,7 +13,7 @@ class HomeErrorView extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Text(
-          message,
+          localizeError(context, error),
           textAlign: TextAlign.center,
           style: const TextStyle(color: Colors.redAccent, fontSize: 16),
         ),

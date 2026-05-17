@@ -1,5 +1,9 @@
 {
   "notes": "Notes",
+  "last7Days": "Last 7 Days",
+  "failedToLoadNotes": "Failed to load notes. Please try again.",
+  "failedToDeleteNotes": "Failed to delete notes. Please try again.",
+  "noteNotFound": "Note not found",
   "noNotesFound": "No notes found",
   "recent": "Recent",
   "today": "Today",
@@ -25,5 +29,47 @@
   "cancel": "Cancel",
   "saveChanges": "Save changes",
   "deleteNoteSubtitle": "This note will be permanently deleted and cannot be recovered.",
-  "delete": "Delete"
+  "delete": "Delete",
+  "notesSelected": "{count, plural, =1{1 note selected} other{{count} notes selected}}",
+  "@notesSelected": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "deleteNotePromptTitle": "{count, plural, =1{Delete 1 note?} other{Delete {count} notes?}}",
+  "@deleteNotePromptTitle": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "deleteNotePromptSubtitle": "{count, plural, =1{This note will be permanently deleted and cannot be recovered.} other{These notes will be permanently deleted and cannot be recovered.}}",
+  "@deleteNotePromptSubtitle": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "justNow": "Just now",
+  "minutesAgo": "{count} m ago",
+  "@minutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "hoursAgo": "{count} h ago",
+  "@hoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "failedToSaveNote": "Failed to save note"
 }

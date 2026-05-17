@@ -12,6 +12,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notes => 'Notes';
 
   @override
+  String get last7Days => 'Last 7 Days';
+
+  @override
+  String get failedToLoadNotes => 'Failed to load notes. Please try again.';
+
+  @override
+  String get failedToDeleteNotes => 'Failed to delete notes. Please try again.';
+
+  @override
+  String get noteNotFound => 'Note not found';
+
+  @override
   String get noNotesFound => 'No notes found';
 
   @override
@@ -70,4 +82,53 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get delete => 'Delete';
+
+  @override
+  String notesSelected(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count notes selected',
+      one: '1 note selected',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String deleteNotePromptTitle(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Delete $count notes?',
+      one: 'Delete 1 note?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String deleteNotePromptSubtitle(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'These notes will be permanently deleted and cannot be recovered.',
+      one: 'This note will be permanently deleted and cannot be recovered.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get justNow => 'Just now';
+
+  @override
+  String minutesAgo(num count) {
+    return '$count m ago';
+  }
+
+  @override
+  String hoursAgo(num count) {
+    return '$count h ago';
+  }
+
+  @override
+  String get failedToSaveNote => 'Failed to save note';
 }

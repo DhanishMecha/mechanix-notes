@@ -10,6 +10,7 @@ import 'package:mechanix_notes/features/notes/presentation/widgets/editor/editor
 import 'package:mechanix_notes/features/notes/presentation/widgets/editor/editor_top_bar.dart';
 import 'package:mechanix_notes/features/notes/presentation/widgets/editor/quill_controller_provider.dart';
 import 'package:mechanix_notes/l10n/notes_localizations.dart';
+import 'package:mechanix_notes/core/utils/helper.dart';
 
 class EditorView extends StatefulWidget {
   const EditorView({super.key});
@@ -70,9 +71,9 @@ class _EditorViewState extends State<EditorView> {
           Navigator.of(context).pop();
         }
         if (state is EditorFailure) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(state.message)));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(localizeError(context, state.error))),
+          );
         }
       },
       // builder
@@ -86,6 +87,7 @@ class _EditorViewState extends State<EditorView> {
 
         if (state is EditorLoaded ||
             state is EditorSaveSuccess ||
+            state is EditorDiscarded ||
             state is EditorDeleteRequest) {
           final shell = Scaffold(
             backgroundColor: Colors.black,
@@ -120,7 +122,7 @@ class _EditorViewState extends State<EditorView> {
                   const Icon(Icons.error_outline, color: Colors.red, size: 48),
                   const SizedBox(height: 12),
                   Text(
-                    AppLocalizations.of(context)!.somethingWentWrong,
+                    localizeError(context, state.error),
                     style: const TextStyle(color: Colors.white, fontSize: 16),
                   ),
                   const SizedBox(height: 24),

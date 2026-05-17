@@ -50,9 +50,8 @@ class HomeDeleteSheet extends StatelessWidget {
                     const SizedBox(height: 12),
 
                     Text(
-                      selectedCount == 1
-                          ? 'Delete 1 note?'
-                          : 'Delete $selectedCount notes?',
+                      AppLocalizations.of(context)!
+                          .deleteNotePromptTitle(selectedCount),
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 20,
@@ -63,9 +62,8 @@ class HomeDeleteSheet extends StatelessWidget {
                     const SizedBox(height: 12),
 
                     Text(
-                      selectedCount == 1
-                          ? 'This note will be permanently deleted and cannot be recovered.'
-                          : 'These notes will be permanently deleted and cannot be recovered.',
+                      AppLocalizations.of(context)!
+                          .deleteNotePromptSubtitle(selectedCount),
                       style: const TextStyle(
                         color: Colors.white70,
                         fontSize: 16,

@@ -8,6 +8,7 @@ import 'package:mechanix_notes/core/utils/app_logger.dart';
 import 'package:mechanix_notes/features/notes/data/models/note_model.dart';
 import 'package:mechanix_notes/features/notes/data/repository/editor_repository.dart';
 import 'package:uuid/uuid.dart';
+import 'package:mechanix_notes/core/utils/enums.dart';
 part 'editor_event.dart';
 part 'editor_state.dart';
 
@@ -45,7 +46,7 @@ class EditorBloc extends Bloc<EditorEvent, EditorState> {
 
         if (note == null) {
           AppLogger.e('EditorBloc: Note not found for id ${event.noteId}');
-          emit(EditorFailure('Note not found.'));
+          emit(EditorFailure(ErrorCategory.noteNotFound));
           return;
         }
 
@@ -77,7 +78,7 @@ class EditorBloc extends Bloc<EditorEvent, EditorState> {
       }
     } catch (e) {
       AppLogger.e('EditorBloc: Failed to load note: $e');
-      emit(EditorFailure('Something went wrong.'));
+      emit(EditorFailure(ErrorCategory.somethingWentWrong));
     }
   }
 
@@ -163,7 +164,7 @@ class EditorBloc extends Bloc<EditorEvent, EditorState> {
       emit(EditorSaveSuccess(current.noteId));
     } catch (e) {
       AppLogger.e('EditorBloc: Manual save failed: $e');
-      emit(EditorFailure('Failed to save note'));
+      emit(EditorFailure(ErrorCategory.failedToSaveNote));
     }
   }
 

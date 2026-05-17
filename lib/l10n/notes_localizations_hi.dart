@@ -12,6 +12,20 @@ class AppLocalizationsHi extends AppLocalizations {
   String get notes => 'नोट्स';
 
   @override
+  String get last7Days => 'पिछले 7 दिन';
+
+  @override
+  String get failedToLoadNotes =>
+      'नोट्स लोड करने में विफल। कृपया पुन: प्रयास करें।';
+
+  @override
+  String get failedToDeleteNotes =>
+      'नोट्स हटाने में विफल। कृपया पुन: प्रयास करें।';
+
+  @override
+  String get noteNotFound => 'नोट नहीं मिला';
+
+  @override
   String get noNotesFound => 'कोई नोट्स नहीं मिले';
 
   @override
@@ -70,4 +84,54 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get delete => 'हटाएं';
+
+  @override
+  String notesSelected(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count नोट्स चुने गए',
+      one: '1 नोट चुना गया',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String deleteNotePromptTitle(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count नोट्स हटाएं?',
+      one: '1 नोट हटाएं?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String deleteNotePromptSubtitle(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'ये नोट्स हमेशा के लिए हटा दिए जाएंगे और इन्हें वापस नहीं लाया जा सकता।',
+      one: 'यह नोट हमेशा के लिए हटा दी जाएगी और इसे वापस नहीं लाया जा सकता।',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get justNow => 'अभी-अभी';
+
+  @override
+  String minutesAgo(num count) {
+    return '$count मिनट पहले';
+  }
+
+  @override
+  String hoursAgo(num count) {
+    return '$count घंटे पहले';
+  }
+
+  @override
+  String get failedToSaveNote => 'नोट सहेजने में विफल';
 }

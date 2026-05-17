@@ -24,7 +24,7 @@ class HomeNotesView extends StatelessWidget {
             builder: (context, state) {
               if (state.isLoading) return const HomeLoadingView();
               if (state.error != null) {
-                return HomeErrorView(message: state.error!);
+                return HomeErrorView(error: state.error!);
               }
               if (state.groupedNotes.isEmpty) return const HomeEmptyView();
               return HomeListView(groupedNotes: state.groupedNotes);

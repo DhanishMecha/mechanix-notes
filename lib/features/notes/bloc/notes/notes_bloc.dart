@@ -4,7 +4,9 @@ import 'package:mechanix_notes/core/utils/app_logger.dart';
 import 'package:mechanix_notes/features/notes/bloc/notes/notes_event.dart';
 import 'package:mechanix_notes/features/notes/bloc/notes/notes_state.dart';
 import 'package:mechanix_notes/features/notes/data/models/note_metadata.dart';
+import 'package:mechanix_notes/features/notes/data/models/time_group.dart';
 import 'package:mechanix_notes/features/notes/data/repository/note_repository.dart';
+import 'package:mechanix_notes/core/utils/enums.dart';
 
 class NotesBloc extends Bloc<NotesEvent, NotesState> {
   final NoteRepository noteRepository;
@@ -49,7 +51,7 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
       emit(
         state.copyWith(
           isLoading: false,
-          error: "Failed to load notes. Please try again.",
+          error: ErrorCategory.failedToLoadNotes,
         ),
       );
     }
@@ -77,10 +79,10 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
       }
 
       final lastNote = state.groupedNotes.whereType<NoteMetaData>().last;
-      final lastLabel = _getTimeLabelForNote(lastNote);
+      final lastGroup = _getTimeGroupForNote(lastNote);
       final newEntries = _buildFlattenedNotes(
         newBatch,
-        existingLabel: lastLabel,
+        existingGroup: lastGroup,
       );
 
       emit(
@@ -99,18 +101,18 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
 
   List<Object> _buildFlattenedNotes(
     List<NoteMetaData> notes, {
-    String? existingLabel,
+    TimeGroup? existingGroup,
   }) {
     if (notes.isEmpty) return [];
 
     final List<Object> flattened = [];
-    String? currentLabel = existingLabel;
+    TimeGroup? currentGroup = existingGroup;
 
     for (final note in notes) {
-      final label = _getTimeLabelForNote(note);
-      if (label != currentLabel) {
-        flattened.add(label);
-        currentLabel = label;
+      final group = _getTimeGroupForNote(note);
+      if (group != currentGroup) {
+        flattened.add(group);
+        currentGroup = group;
       }
       flattened.add(note);
     }
@@ -123,9 +125,9 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
       AppLogger.i("Refreshing note ${event.noteId}");
       final updatedNote = await noteRepository.getNoteById(event.noteId);
       if (updatedNote == null) return;
-      final label = _getTimeLabelForNote(updatedNote);
+      final group = _getTimeGroupForNote(updatedNote);
 
-      if (label != "Recent") return;
+      if (group.category != TimeCategory.recent) return;
       emit(state.copyWith(isRefreshed: false));
 
       // Remove old entry and insert updated note at top (most recently updated)
@@ -191,7 +193,7 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
       );
     } catch (e) {
       AppLogger.e("Error deleting notes: $e");
-      emit(state.copyWith(error: "Failed to delete notes. Please try again."));
+      emit(state.copyWith(error: ErrorCategory.failedToDeleteNotes));
     }
   }
 
@@ -243,7 +245,7 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
     emit(state.copyWith(selectedNotes: const [], isSelectionMode: false));
   }
 
-  String _getTimeLabelForNote(NoteMetaData note) {
+  TimeGroup _getTimeGroupForNote(NoteMetaData note) {
     final now = DateTime.now();
     final updated = note.updatedAt;
     final today = DateTime(now.year, now.month, now.day);
@@ -251,15 +253,18 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
     final daysAgo = today.difference(dateOnly).inDays;
     final hoursAgo = now.difference(updated).inHours;
 
-    final time = switch (true) {
-      _ when hoursAgo < 2 => "Recent",
-      _ when daysAgo == 0 => "Today",
-      _ when daysAgo <= 7 => "Last 7 Days",
-      _ when daysAgo <= 30 => "Last Month",
-      _ => DateFormat("MMMM yyyy", state.localized).format(updated),
+    final group = switch (true) {
+      _ when hoursAgo < 2 => const TimeGroup(TimeCategory.recent),
+      _ when daysAgo == 0 => const TimeGroup(TimeCategory.today),
+      _ when daysAgo <= 7 => const TimeGroup(TimeCategory.last7Days),
+      _ when daysAgo <= 30 => const TimeGroup(TimeCategory.lastMonth),
+      _ => TimeGroup(
+        TimeCategory.custom,
+        DateFormat("MMMM yyyy", state.localized).format(updated),
+      ),
     };
 
-    AppLogger.i("Time label for note ${note.id}: $time $updated");
-    return time;
+    AppLogger.i("Time group for note ${note.id}: ${group.category} ${group.customLabel} $updated");
+    return group;
   }
 }

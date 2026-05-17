@@ -104,6 +104,30 @@ abstract class AppLocalizations {
   /// **'Notes'**
   String get notes;
 
+  /// No description provided for @last7Days.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 7 Days'**
+  String get last7Days;
+
+  /// No description provided for @failedToLoadNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load notes. Please try again.'**
+  String get failedToLoadNotes;
+
+  /// No description provided for @failedToDeleteNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to delete notes. Please try again.'**
+  String get failedToDeleteNotes;
+
+  /// No description provided for @noteNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Note not found'**
+  String get noteNotFound;
+
   /// No description provided for @noNotesFound.
   ///
   /// In en, this message translates to:
@@ -217,6 +241,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete'**
   String get delete;
+
+  /// No description provided for @notesSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 note selected} other{{count} notes selected}}'**
+  String notesSelected(num count);
+
+  /// No description provided for @deleteNotePromptTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Delete 1 note?} other{Delete {count} notes?}}'**
+  String deleteNotePromptTitle(num count);
+
+  /// No description provided for @deleteNotePromptSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{This note will be permanently deleted and cannot be recovered.} other{These notes will be permanently deleted and cannot be recovered.}}'**
+  String deleteNotePromptSubtitle(num count);
+
+  /// No description provided for @justNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Just now'**
+  String get justNow;
+
+  /// No description provided for @minutesAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} m ago'**
+  String minutesAgo(num count);
+
+  /// No description provided for @hoursAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} h ago'**
+  String hoursAgo(num count);
+
+  /// No description provided for @failedToSaveNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to save note'**
+  String get failedToSaveNote;
 }
 
 class _AppLocalizationsDelegate
