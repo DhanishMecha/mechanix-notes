@@ -46,6 +46,7 @@ dependencies:
   bloc_test: ^10.0.0
   mocktail: ^1.0.5
   show_fps: ^1.1.0
+  test: ^1.28.0
 
 dependency_overrides:
   intl: ^0.20.2

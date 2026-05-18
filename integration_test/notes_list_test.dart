@@ -26,7 +26,10 @@ void main() {
       expect(find.text('Notes'), findsWidgets);
 
       // Floating add button is visible
-      expect(IntegrationTestHelper.findImageAsset(NotesIcon.createIcon), findsOneWidget);
+      expect(
+        IntegrationTestHelper.findImageAsset(NotesIcon.createIcon),
+        findsOneWidget,
+      );
 
       // Grid icon is visible (Not yet implemented in UI)
       // expect(IntegrationTestHelper.findImageAsset(NotesIcon.gridIcon), findsOneWidget);

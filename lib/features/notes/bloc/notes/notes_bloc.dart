@@ -272,7 +272,9 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
       ),
     };
 
-    AppLogger.i("Time group for note ${note.id}: ${group.category} ${group.customLabel} $updated");
+    AppLogger.i(
+      "Time group for note ${note.id}: ${group.category} ${group.customLabel} $updated",
+    );
     return group;
   }
 }

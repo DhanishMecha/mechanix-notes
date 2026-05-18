@@ -1,4 +1,3 @@
-
 enum TimeCategory {
   recent,
   today,

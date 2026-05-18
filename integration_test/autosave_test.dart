@@ -28,52 +28,60 @@ void main() {
       app.main();
       await tester.pumpAndSettle();
 
-      await tester.tap(IntegrationTestHelper.findImageAsset(NotesIcon.createIcon));
+      await tester.tap(
+        IntegrationTestHelper.findImageAsset(NotesIcon.createIcon),
+      );
       await tester.pumpAndSettle();
       await IntegrationTestHelper.waitForEditor(tester);
 
       final titleField = find.byType(TextField).first;
       await tester.enterText(titleField, 'Fast Type');
-      
+
       // Wait less than 2 seconds
       await tester.pump(const Duration(seconds: 1));
-      
+
       // Navigate back immediately before debounce triggers save
-      await tester.tap(IntegrationTestHelper.findImageAsset(NotesIcon.backIcon));
+      await tester.tap(
+        IntegrationTestHelper.findImageAsset(NotesIcon.backIcon),
+      );
       await tester.pumpAndSettle();
 
-      // Note should not be saved or might be untitled depending on logic, 
+      // Note should not be saved or might be untitled depending on logic,
       // but 'Fast Type' shouldn't be fully committed as title if debounce didn't finish.
-      // We check if it exists (might fail if app logic saves on back navigation, 
+      // We check if it exists (might fail if app logic saves on back navigation,
       // but according to prompt "Should NOT Save Before 2 Seconds" tests debounce).
-      // Assuming auto-save only triggers after 2 seconds or manual save/back button. 
+      // Assuming auto-save only triggers after 2 seconds or manual save/back button.
       // If back button triggers save, we test the debounce logic via continuous typing.
     });
 
-    testWidgets('Continuous Typing does not trigger save until stopped', (tester) async {
+    testWidgets('Continuous Typing does not trigger save until stopped', (
+      tester,
+    ) async {
       app.main();
       await tester.pumpAndSettle();
 
-      await tester.tap(IntegrationTestHelper.findImageAsset(NotesIcon.createIcon));
+      await tester.tap(
+        IntegrationTestHelper.findImageAsset(NotesIcon.createIcon),
+      );
       await tester.pumpAndSettle();
       await IntegrationTestHelper.waitForEditor(tester);
 
       final titleField = find.byType(TextField).first;
-      
+
       // Simulate continuous typing by entering text and pumping small durations
       final now = DateTime.now().millisecondsSinceEpoch;
       final uniqueTitle = 'Part 1 and 2 and 3 $now';
-      
+
       // Simulate continuous typing by entering text and pumping small durations
       await tester.enterText(titleField, 'Part 1 $now');
       await tester.pump(const Duration(milliseconds: 500));
-      
+
       await tester.enterText(titleField, 'Part 1 and 2 $now');
       await tester.pump(const Duration(milliseconds: 500));
-      
+
       await tester.enterText(titleField, uniqueTitle);
       await tester.pump(const Duration(milliseconds: 500));
-      
+
       // Total elapsed is 1.5 seconds, which is less than 2s debounce from first typing
       // So no save should have happened yet.
 
@@ -81,7 +89,9 @@ void main() {
       await tester.pump(const Duration(seconds: 2));
       await tester.pumpAndSettle();
 
-      await tester.tap(IntegrationTestHelper.findImageAsset(NotesIcon.backIcon));
+      await tester.tap(
+        IntegrationTestHelper.findImageAsset(NotesIcon.backIcon),
+      );
       await tester.pumpAndSettle();
 
       expect(find.text(uniqueTitle), findsOneWidget);
@@ -91,7 +101,9 @@ void main() {
       app.main();
       await tester.pumpAndSettle();
 
-      await tester.tap(IntegrationTestHelper.findImageAsset(NotesIcon.createIcon));
+      await tester.tap(
+        IntegrationTestHelper.findImageAsset(NotesIcon.createIcon),
+      );
       await tester.pumpAndSettle();
       await IntegrationTestHelper.waitForEditor(tester);
 
@@ -102,7 +114,7 @@ void main() {
 
       await tester.enterText(titleField, initialTitle);
       await tester.pump(const Duration(milliseconds: 500));
-      
+
       // Wait debounce
       await tester.pump(const Duration(seconds: 2));
       await tester.pumpAndSettle();
@@ -115,7 +127,9 @@ void main() {
       await tester.pump(const Duration(seconds: 2));
       await tester.pumpAndSettle();
 
-      await tester.tap(IntegrationTestHelper.findImageAsset(NotesIcon.backIcon));
+      await tester.tap(
+        IntegrationTestHelper.findImageAsset(NotesIcon.backIcon),
+      );
       await tester.pumpAndSettle();
 
       expect(find.text(updatedTitle), findsOneWidget);

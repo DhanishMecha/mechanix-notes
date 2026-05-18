@@ -16,7 +16,9 @@ class IntegrationTestHelper {
       }
     } catch (_) {}
 
-    final directory = await Directory.systemTemp.createTemp('mechanix_notes_test_');
+    final directory = await Directory.systemTemp.createTemp(
+      'mechanix_notes_test_',
+    );
     tempPath = directory.path;
     Hive.init(tempPath);
   }
@@ -31,18 +33,22 @@ class IntegrationTestHelper {
   }
 
   static Finder findEditorButton(String asset) {
-    return find.byWidgetPredicate(
-      (widget) => widget is EditorButton && widget.asset == asset,
-    ).last;
+    return find
+        .byWidgetPredicate(
+          (widget) => widget is EditorButton && widget.asset == asset,
+        )
+        .last;
   }
 
   static Finder findImageAsset(String asset) {
-    return find.byWidgetPredicate(
-      (widget) =>
-          widget is Image &&
-          widget.image is AssetImage &&
-          (widget.image as AssetImage).assetName == asset,
-    ).last;
+    return find
+        .byWidgetPredicate(
+          (widget) =>
+              widget is Image &&
+              widget.image is AssetImage &&
+              (widget.image as AssetImage).assetName == asset,
+        )
+        .last;
   }
 
   static Future<void> waitForEditor(WidgetTester tester) async {

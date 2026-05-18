@@ -29,4 +29,3 @@ final class EditorAutoSaveRequested extends EditorEvent {
   final String plainText;
   EditorAutoSaveRequested({required this.content, required this.plainText});
 }
-

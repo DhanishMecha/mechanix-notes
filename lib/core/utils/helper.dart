@@ -23,8 +23,6 @@ String getLocalizedLabelForTimeNotes(BuildContext context, TimeGroup group) {
       return AppLocalizations.of(context)!.lastMonth;
     case TimeCategory.custom:
       return group.customLabel ?? '';
-    default:
-      return '';
   }
 }
 
@@ -43,7 +41,6 @@ String localizeError(BuildContext context, ErrorCategory error) {
     case ErrorCategory.appAlreadyRunning:
       return AppLocalizations.of(context)!.appAlreadyRunning;
     case ErrorCategory.unknown:
-    default:
       return AppLocalizations.of(context)!.somethingWentWrong;
   }
 }

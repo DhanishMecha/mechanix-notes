@@ -30,12 +30,14 @@ void main() {
       app.main();
       await tester.pumpAndSettle();
 
-      await tester.tap(IntegrationTestHelper.findImageAsset(NotesIcon.createIcon));
+      await tester.tap(
+        IntegrationTestHelper.findImageAsset(NotesIcon.createIcon),
+      );
       await tester.pumpAndSettle();
       await IntegrationTestHelper.waitForEditor(tester);
 
       final titleField = find.byType(TextField).first;
-      
+
       // Type continuously and pump
       final now = DateTime.now().millisecondsSinceEpoch;
       for (int i = 0; i < 20; i++) {
@@ -43,17 +45,22 @@ void main() {
         await tester.pump(const Duration(milliseconds: 100));
       }
 
-      await IntegrationTestHelper.enterQuillText(tester, 'Continuous quill typing');
+      await IntegrationTestHelper.enterQuillText(
+        tester,
+        'Continuous quill typing',
+      );
       for (int i = 0; i < 10; i++) {
         await tester.pump(const Duration(milliseconds: 100));
       }
-      
+
       // Wait debounce
       await tester.pump(const Duration(seconds: 2));
       await tester.pumpAndSettle();
 
       // Back
-      await tester.tap(IntegrationTestHelper.findImageAsset(NotesIcon.backIcon));
+      await tester.tap(
+        IntegrationTestHelper.findImageAsset(NotesIcon.backIcon),
+      );
       await tester.pumpAndSettle();
 
       expect(find.text('Notes'), findsWidgets);

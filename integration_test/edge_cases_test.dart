@@ -23,20 +23,24 @@ void main() {
       app.main();
       await tester.pumpAndSettle();
 
-      await tester.tap(IntegrationTestHelper.findImageAsset(NotesIcon.createIcon));
+      await tester.tap(
+        IntegrationTestHelper.findImageAsset(NotesIcon.createIcon),
+      );
       await tester.pumpAndSettle();
       await IntegrationTestHelper.waitForEditor(tester);
 
       final titleField = find.byType(TextField).first;
       final longTitle = 'A' * 200;
       await tester.enterText(titleField, longTitle);
-      
+
       // Wait debounce
       await tester.pump(const Duration(seconds: 2));
       await tester.pumpAndSettle();
 
       // Back
-      await tester.tap(IntegrationTestHelper.findImageAsset(NotesIcon.backIcon));
+      await tester.tap(
+        IntegrationTestHelper.findImageAsset(NotesIcon.backIcon),
+      );
       await tester.pumpAndSettle();
 
       // Verify no overflow by pumping
@@ -47,19 +51,23 @@ void main() {
       app.main();
       await tester.pumpAndSettle();
 
-      await tester.tap(IntegrationTestHelper.findImageAsset(NotesIcon.createIcon));
+      await tester.tap(
+        IntegrationTestHelper.findImageAsset(NotesIcon.createIcon),
+      );
       await tester.pumpAndSettle();
       await IntegrationTestHelper.waitForEditor(tester);
 
       final longContent = 'B' * 1000;
       await IntegrationTestHelper.enterQuillText(tester, longContent);
-      
+
       // Wait debounce
       await tester.pump(const Duration(seconds: 2));
       await tester.pumpAndSettle();
 
       // Back
-      await tester.tap(IntegrationTestHelper.findImageAsset(NotesIcon.backIcon));
+      await tester.tap(
+        IntegrationTestHelper.findImageAsset(NotesIcon.backIcon),
+      );
       await tester.pumpAndSettle();
 
       expect(find.text('Notes'), findsWidgets);
@@ -69,7 +77,9 @@ void main() {
       app.main();
       await tester.pumpAndSettle();
 
-      await tester.tap(IntegrationTestHelper.findImageAsset(NotesIcon.createIcon));
+      await tester.tap(
+        IntegrationTestHelper.findImageAsset(NotesIcon.createIcon),
+      );
       await tester.pumpAndSettle();
       await IntegrationTestHelper.waitForEditor(tester);
 
@@ -77,7 +87,9 @@ void main() {
       await tester.pump(const Duration(seconds: 2));
       await tester.pumpAndSettle();
 
-      await tester.tap(IntegrationTestHelper.findImageAsset(NotesIcon.backIcon));
+      await tester.tap(
+        IntegrationTestHelper.findImageAsset(NotesIcon.backIcon),
+      );
       await tester.pumpAndSettle();
 
       expect(find.text('Notes'), findsWidgets);
@@ -88,11 +100,15 @@ void main() {
       await tester.pumpAndSettle();
 
       for (int i = 0; i < 3; i++) {
-        await tester.tap(IntegrationTestHelper.findImageAsset(NotesIcon.createIcon));
+        await tester.tap(
+          IntegrationTestHelper.findImageAsset(NotesIcon.createIcon),
+        );
         await tester.pumpAndSettle();
         await IntegrationTestHelper.waitForEditor(tester);
 
-        await tester.tap(IntegrationTestHelper.findImageAsset(NotesIcon.backIcon));
+        await tester.tap(
+          IntegrationTestHelper.findImageAsset(NotesIcon.backIcon),
+        );
         await tester.pumpAndSettle();
       }
 

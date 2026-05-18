@@ -72,7 +72,8 @@ void main() {
     testWidgets('Full Note Lifecycle: Create, Format, Manual Save, Delete', (
       tester,
     ) async {
-      final uniqueTitle = 'Lifecycle Test Note ${DateTime.now().millisecondsSinceEpoch}';
+      final uniqueTitle =
+          'Lifecycle Test Note ${DateTime.now().millisecondsSinceEpoch}';
       app.main();
       await tester.pumpAndSettle();
 
@@ -116,21 +117,21 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text(uniqueTitle), findsOneWidget);
- 
-       // 7. Delete
-       await tester.longPress(find.text(uniqueTitle));
-       await tester.pumpAndSettle();
-       await tester.tap(findImageAsset(NotesIcon.deleteIcon));
-       await tester.pumpAndSettle();
-       final confirmBtn = find.text('Delete');
-       expect(confirmBtn, findsOneWidget);
-       await tester.tap(confirmBtn);
-       await tester.pumpAndSettle();
-       await tester.pump(const Duration(seconds: 1));
-       await tester.pumpAndSettle();
- 
-       // 8. Verify Gone
-       expect(find.text(uniqueTitle), findsNothing);
+
+      // 7. Delete
+      await tester.longPress(find.text(uniqueTitle));
+      await tester.pumpAndSettle();
+      await tester.tap(findImageAsset(NotesIcon.deleteIcon));
+      await tester.pumpAndSettle();
+      final confirmBtn = find.text('Delete');
+      expect(confirmBtn, findsOneWidget);
+      await tester.tap(confirmBtn);
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pumpAndSettle();
+
+      // 8. Verify Gone
+      expect(find.text(uniqueTitle), findsNothing);
     });
 
     // testWidgets('Auto-save scenario', (tester) async {

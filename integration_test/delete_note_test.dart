@@ -23,10 +23,13 @@ void main() {
       app.main();
       await tester.pumpAndSettle();
 
-      final uniqueTitle = 'Delete Me Note ${DateTime.now().millisecondsSinceEpoch}';
+      final uniqueTitle =
+          'Delete Me Note ${DateTime.now().millisecondsSinceEpoch}';
 
       // Create a note
-      await tester.tap(IntegrationTestHelper.findImageAsset(NotesIcon.createIcon));
+      await tester.tap(
+        IntegrationTestHelper.findImageAsset(NotesIcon.createIcon),
+      );
       await tester.pumpAndSettle();
       await IntegrationTestHelper.waitForEditor(tester);
 
@@ -34,9 +37,11 @@ void main() {
       await tester.enterText(titleField, uniqueTitle);
       await tester.pump(const Duration(milliseconds: 500));
       await tester.pumpAndSettle();
-      
+
       // Tap back to save and go to home
-      await tester.tap(IntegrationTestHelper.findEditorButton(NotesIcon.backIcon));
+      await tester.tap(
+        IntegrationTestHelper.findEditorButton(NotesIcon.backIcon),
+      );
       await tester.pumpAndSettle();
       await tester.pump(const Duration(seconds: 1));
       await tester.pumpAndSettle();
@@ -49,7 +54,9 @@ void main() {
       await tester.pumpAndSettle();
 
       // Tap delete icon in bottom bar
-      await tester.tap(IntegrationTestHelper.findImageAsset(NotesIcon.deleteIcon));
+      await tester.tap(
+        IntegrationTestHelper.findImageAsset(NotesIcon.deleteIcon),
+      );
       await tester.pumpAndSettle();
 
       // Confirm delete
@@ -68,10 +75,13 @@ void main() {
       app.main();
       await tester.pumpAndSettle();
 
-      final uniqueTitle = 'Do Not Delete Note ${DateTime.now().millisecondsSinceEpoch}';
+      final uniqueTitle =
+          'Do Not Delete Note ${DateTime.now().millisecondsSinceEpoch}';
 
       // Create a note
-      await tester.tap(IntegrationTestHelper.findImageAsset(NotesIcon.createIcon));
+      await tester.tap(
+        IntegrationTestHelper.findImageAsset(NotesIcon.createIcon),
+      );
       await tester.pumpAndSettle();
       await IntegrationTestHelper.waitForEditor(tester);
 
@@ -79,9 +89,11 @@ void main() {
       await tester.enterText(titleField, uniqueTitle);
       await tester.pump(const Duration(milliseconds: 500));
       await tester.pumpAndSettle();
-      
+
       // Tap back to save and go to home
-      await tester.tap(IntegrationTestHelper.findEditorButton(NotesIcon.backIcon));
+      await tester.tap(
+        IntegrationTestHelper.findEditorButton(NotesIcon.backIcon),
+      );
       await tester.pumpAndSettle();
       await tester.pump(const Duration(seconds: 1));
       await tester.pumpAndSettle();
@@ -94,7 +106,9 @@ void main() {
       await tester.pumpAndSettle();
 
       // Tap delete icon in bottom bar
-      await tester.tap(IntegrationTestHelper.findImageAsset(NotesIcon.deleteIcon));
+      await tester.tap(
+        IntegrationTestHelper.findImageAsset(NotesIcon.deleteIcon),
+      );
       await tester.pumpAndSettle();
 
       // Tap cancel in sheet

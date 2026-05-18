@@ -50,8 +50,9 @@ class HomeDeleteSheet extends StatelessWidget {
                     const SizedBox(height: 12),
 
                     Text(
-                      AppLocalizations.of(context)!
-                          .deleteNotePromptTitle(selectedCount),
+                      AppLocalizations.of(
+                        context,
+                      )!.deleteNotePromptTitle(selectedCount),
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 20,
@@ -62,8 +63,9 @@ class HomeDeleteSheet extends StatelessWidget {
                     const SizedBox(height: 12),
 
                     Text(
-                      AppLocalizations.of(context)!
-                          .deleteNotePromptSubtitle(selectedCount),
+                      AppLocalizations.of(
+                        context,
+                      )!.deleteNotePromptSubtitle(selectedCount),
                       style: const TextStyle(
                         color: Colors.white70,
                         fontSize: 16,

@@ -6,5 +6,4 @@ abstract class EditorRepository {
   Future<void> createNote(NoteModel note);
 
   Future<void> updateNote(NoteModel note);
-
 }

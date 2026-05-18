@@ -46,7 +46,6 @@ class HomeFloatingBar extends StatelessWidget {
             // ),
 
             // const SizedBox(height: 12),
-
             FloatingActionButton(
               mouseCursor: SystemMouseCursors.click,
               heroTag: 'create',

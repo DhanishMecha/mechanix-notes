@@ -20,19 +20,23 @@ void main() {
     });
 
     Future<void> createDummyNote(WidgetTester tester, String title) async {
-      await tester.tap(IntegrationTestHelper.findImageAsset(NotesIcon.createIcon));
+      await tester.tap(
+        IntegrationTestHelper.findImageAsset(NotesIcon.createIcon),
+      );
       await tester.pumpAndSettle();
       await IntegrationTestHelper.waitForEditor(tester);
 
       final titleField = find.byType(TextField).first;
       await tester.enterText(titleField, title);
-      
+
       // Wait debounce to save
       await tester.pump(const Duration(seconds: 2));
       await tester.pumpAndSettle();
 
       // Navigate back
-      await tester.tap(IntegrationTestHelper.findImageAsset(NotesIcon.backIcon));
+      await tester.tap(
+        IntegrationTestHelper.findImageAsset(NotesIcon.backIcon),
+      );
       await tester.pumpAndSettle();
     }
 
@@ -56,8 +60,14 @@ void main() {
       await tester.pumpAndSettle();
 
       // Bottom selection bar visible - assume close icon or delete icon is there
-      expect(IntegrationTestHelper.findImageAsset(NotesIcon.closeIcon), findsOneWidget);
-      expect(IntegrationTestHelper.findImageAsset(NotesIcon.deleteIcon), findsWidgets);
+      expect(
+        IntegrationTestHelper.findImageAsset(NotesIcon.closeIcon),
+        findsOneWidget,
+      );
+      expect(
+        IntegrationTestHelper.findImageAsset(NotesIcon.deleteIcon),
+        findsWidgets,
+      );
 
       // Select second note
       await tester.tap(note2);
@@ -71,7 +81,9 @@ void main() {
       await tester.pumpAndSettle();
 
       // Exit selection mode via close icon
-      await tester.tap(IntegrationTestHelper.findImageAsset(NotesIcon.closeIcon));
+      await tester.tap(
+        IntegrationTestHelper.findImageAsset(NotesIcon.closeIcon),
+      );
       await tester.pumpAndSettle();
     });
 
@@ -101,7 +113,9 @@ void main() {
       // Tap delete on bottom bar
       // Since it might be multiple delete icons, get the one on the bottom bar
       // Here we assume tapping deleteIcon triggers delete. Let's just tap the first delete icon.
-      final deleteIconFinder = IntegrationTestHelper.findImageAsset(NotesIcon.deleteIcon).first;
+      final deleteIconFinder = IntegrationTestHelper.findImageAsset(
+        NotesIcon.deleteIcon,
+      ).first;
       await tester.tap(deleteIconFinder);
       await tester.pumpAndSettle();
 

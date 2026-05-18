@@ -343,8 +343,7 @@ void main() {
     blocTest<EditorBloc, EditorState>(
       'multiple title changes only keeps last value',
       build: buildBloc,
-      seed: () =>
-          EditorLoaded(noteId: kTestNoteId, title: '', isNewNote: true),
+      seed: () => EditorLoaded(noteId: kTestNoteId, title: '', isNewNote: true),
       act: (bloc) {
         bloc.add(EditorTitleChanged('A'));
         bloc.add(EditorTitleChanged('AB'));
@@ -800,10 +799,7 @@ void main() {
       act: (bloc) {
         // 0 chars → ceil(0/60)=0 → clamp(1,20)=1 → 1*24+80=104
         bloc.add(
-          EditorSaveRequested(
-            content: jsonDecode(kEmptyDelta),
-            plainText: '',
-          ),
+          EditorSaveRequested(content: jsonDecode(kEmptyDelta), plainText: ''),
         );
       },
       verify: (_) {
@@ -1017,11 +1013,7 @@ void main() {
       ),
       // FIX: bloc emits EditorDiscarded(noteId: current.noteId) when isDirty=true
       expect: () => [
-        isA<EditorDiscarded>().having(
-          (s) => s.noteId,
-          'noteId',
-          kTestNoteId,
-        ),
+        isA<EditorDiscarded>().having((s) => s.noteId, 'noteId', kTestNoteId),
       ],
     );
 
@@ -1570,7 +1562,8 @@ void main() {
       act: (bloc) => bloc.add(
         EditorAutoSaveRequested(
           content: jsonDecode(kEmptyDelta),
-          plainText: '', // empty body — but title is non-empty so skip guard doesn't fire
+          plainText:
+              '', // empty body — but title is non-empty so skip guard doesn't fire
         ),
       ),
       // The skip guard is: isNewNote && title.trim().isEmpty && plainText.trim().isEmpty
@@ -1607,9 +1600,9 @@ void main() {
       'isNewNote stays false after auto-save when already false',
       build: buildBloc,
       setUp: () {
-        when(() => repository.getNoteById(kTestNoteId)).thenAnswer(
-          (_) async => makeNote(content: kEmptyDelta),
-        );
+        when(
+          () => repository.getNoteById(kTestNoteId),
+        ).thenAnswer((_) async => makeNote(content: kEmptyDelta));
         when(() => repository.updateNote(any())).thenAnswer((_) async {});
       },
       seed: () => EditorLoaded(
@@ -1740,8 +1733,9 @@ void main() {
       'auto-save then manual save calls updateNote on second save',
       build: buildBloc,
       setUp: () {
-        when(() => repository.getNoteById(kTestNoteId))
-            .thenAnswer((_) async => null);
+        when(
+          () => repository.getNoteById(kTestNoteId),
+        ).thenAnswer((_) async => null);
         when(() => repository.createNote(any())).thenAnswer((_) async {});
         when(() => repository.updateNote(any())).thenAnswer((_) async {});
       },
@@ -1762,8 +1756,9 @@ void main() {
         await Future<void>.delayed(Duration.zero);
 
         // Now stub getNoteById to return the note that was just "created"
-        when(() => repository.getNoteById(kTestNoteId))
-            .thenAnswer((_) async => makeNote());
+        when(
+          () => repository.getNoteById(kTestNoteId),
+        ).thenAnswer((_) async => makeNote());
 
         // Second: manual save — content is same so it discards
         bloc.add(

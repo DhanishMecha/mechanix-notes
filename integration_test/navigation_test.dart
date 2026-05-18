@@ -24,35 +24,42 @@ void main() {
       await tester.pumpAndSettle();
 
       // Create a note first
-      await tester.tap(IntegrationTestHelper.findImageAsset(NotesIcon.createIcon));
+      await tester.tap(
+        IntegrationTestHelper.findImageAsset(NotesIcon.createIcon),
+      );
       await tester.pumpAndSettle();
       await IntegrationTestHelper.waitForEditor(tester);
 
       final titleField = find.byType(TextField).first;
-      final uniqueTitle = 'Navigation Note ${DateTime.now().millisecondsSinceEpoch}';
+      final uniqueTitle =
+          'Navigation Note ${DateTime.now().millisecondsSinceEpoch}';
       await tester.enterText(titleField, uniqueTitle);
-      
+
       // Wait debounce to save
       await tester.pump(const Duration(seconds: 2));
       await tester.pumpAndSettle();
- 
+
       // Navigate back
-      await tester.tap(IntegrationTestHelper.findImageAsset(NotesIcon.backIcon));
+      await tester.tap(
+        IntegrationTestHelper.findImageAsset(NotesIcon.backIcon),
+      );
       await tester.pumpAndSettle();
- 
+
       // Open the existing note
       final existingNote = find.text(uniqueTitle).first;
       await tester.tap(existingNote);
       await tester.pumpAndSettle();
       await IntegrationTestHelper.waitForEditor(tester);
- 
+
       // Verify correct note opened
       expect(find.text(uniqueTitle), findsWidgets);
 
       // Navigate back again
-      await tester.tap(IntegrationTestHelper.findImageAsset(NotesIcon.backIcon));
+      await tester.tap(
+        IntegrationTestHelper.findImageAsset(NotesIcon.backIcon),
+      );
       await tester.pumpAndSettle();
-      
+
       // Return to notes list
       expect(find.text('Notes'), findsWidgets);
     });
@@ -61,16 +68,21 @@ void main() {
       app.main();
       await tester.pumpAndSettle();
 
-      await tester.tap(IntegrationTestHelper.findImageAsset(NotesIcon.createIcon));
+      await tester.tap(
+        IntegrationTestHelper.findImageAsset(NotesIcon.createIcon),
+      );
       await tester.pumpAndSettle();
       await IntegrationTestHelper.waitForEditor(tester);
 
       final titleField = find.byType(TextField).first;
-      final uniqueTitle = 'Unsaved Note ${DateTime.now().millisecondsSinceEpoch}';
+      final uniqueTitle =
+          'Unsaved Note ${DateTime.now().millisecondsSinceEpoch}';
       await tester.enterText(titleField, uniqueTitle);
-      
+
       // Immediately go back before debounce
-      await tester.tap(IntegrationTestHelper.findImageAsset(NotesIcon.backIcon));
+      await tester.tap(
+        IntegrationTestHelper.findImageAsset(NotesIcon.backIcon),
+      );
       await tester.pumpAndSettle();
 
       // Depend on implementation whether it's saved or not. We'll just verify no crash

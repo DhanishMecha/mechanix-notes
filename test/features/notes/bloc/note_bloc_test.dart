@@ -51,8 +51,6 @@ bool hasCategory(List<Object> grouped, TimeCategory category) =>
 final now = DateTime.now();
 
 final today = DateTime(now.year, now.month, now.day);
-final thisWeekStart = today.subtract(Duration(days: now.weekday - 1));
-final lastWeekStart = thisWeekStart.subtract(const Duration(days: 7));
 final thisMonthStart = DateTime(now.year, now.month, 1);
 
 NoteMetaData recentNote(String id) =>
@@ -64,11 +62,13 @@ NoteMetaData todayNote(String id) =>
 NoteMetaData yesterdayNote(String id) =>
     makeNote(id: id, updatedAt: today.subtract(const Duration(days: 1)));
 
+/// Exactly 3 calendar days ago — always within the last7Days window (1–7 days).
 NoteMetaData thisWeekNote(String id) =>
-    makeNote(id: id, updatedAt: thisWeekStart.add(const Duration(hours: 1)));
+    makeNote(id: id, updatedAt: now.subtract(const Duration(days: 3)));
 
+/// Exactly 6 calendar days ago — still within the bloc's ≤7-day last7Days window.
 NoteMetaData lastWeekNote(String id) =>
-    makeNote(id: id, updatedAt: lastWeekStart.add(const Duration(hours: 1)));
+    makeNote(id: id, updatedAt: now.subtract(const Duration(days: 6)));
 
 NoteMetaData thisMonthNote(String id) {
   final candidate = thisMonthStart;
@@ -84,12 +84,12 @@ NoteMetaData olderNote(String id) =>
 
 /// Builds a list of [count] notes all updated recently.
 List<NoteMetaData> buildNoteList(int count) => List.generate(
-      count,
-      (i) => makeNote(
-        id: 'note_$i',
-        updatedAt: now.subtract(Duration(minutes: i + 1)),
-      ),
-    );
+  count,
+  (i) => makeNote(
+    id: 'note_$i',
+    updatedAt: now.subtract(Duration(minutes: i + 1)),
+  ),
+);
 
 // ---------------------------------------------------------------------------
 // Tests
@@ -187,8 +187,9 @@ void main() {
     blocTest<NotesBloc, NotesState>(
       'resets currentPage to 0 on fresh load',
       build: () {
-        when(() => mockRepo.getAllNotes())
-            .thenAnswer((_) async => buildNoteList(3));
+        when(
+          () => mockRepo.getAllNotes(),
+        ).thenAnswer((_) async => buildNoteList(3));
         return NotesBloc(noteRepository: mockRepo);
       },
       skip: 2,
@@ -293,8 +294,9 @@ void main() {
     blocTest<NotesBloc, NotesState>(
       'emits appAlreadyRunning error when AppAlreadyRunningException is thrown',
       build: () {
-        when(() => mockRepo.getAllNotes())
-            .thenThrow(AppAlreadyRunningException());
+        when(
+          () => mockRepo.getAllNotes(),
+        ).thenThrow(AppAlreadyRunningException());
         return NotesBloc(noteRepository: mockRepo);
       },
       skip: 2,
@@ -330,36 +332,45 @@ void main() {
     blocTest<NotesBloc, NotesState>(
       'assigns TimeCategory.recent for a note updated less than 2 hours ago',
       build: () {
-        when(() => mockRepo.getAllNotes())
-            .thenAnswer((_) async => [recentNote('r1')]);
+        when(
+          () => mockRepo.getAllNotes(),
+        ).thenAnswer((_) async => [recentNote('r1')]);
         return NotesBloc(noteRepository: mockRepo);
       },
       skip: 1,
       act: (bloc) => bloc.add(LoadNotes()),
       verify: (bloc) {
-        expect(hasCategory(bloc.state.groupedNotes, TimeCategory.recent), isTrue);
+        expect(
+          hasCategory(bloc.state.groupedNotes, TimeCategory.recent),
+          isTrue,
+        );
       },
     );
 
     blocTest<NotesBloc, NotesState>(
       'assigns TimeCategory.today for a note updated earlier today (≥2 h ago)',
       build: () {
-        when(() => mockRepo.getAllNotes())
-            .thenAnswer((_) async => [todayNote('t1')]);
+        when(
+          () => mockRepo.getAllNotes(),
+        ).thenAnswer((_) async => [todayNote('t1')]);
         return NotesBloc(noteRepository: mockRepo);
       },
       skip: 1,
       act: (bloc) => bloc.add(LoadNotes()),
       verify: (bloc) {
-        expect(hasCategory(bloc.state.groupedNotes, TimeCategory.today), isTrue);
+        expect(
+          hasCategory(bloc.state.groupedNotes, TimeCategory.today),
+          isTrue,
+        );
       },
     );
 
     blocTest<NotesBloc, NotesState>(
       'assigns TimeCategory.last7Days for a note updated yesterday',
       build: () {
-        when(() => mockRepo.getAllNotes())
-            .thenAnswer((_) async => [yesterdayNote('y1')]);
+        when(
+          () => mockRepo.getAllNotes(),
+        ).thenAnswer((_) async => [yesterdayNote('y1')]);
         return NotesBloc(noteRepository: mockRepo);
       },
       skip: 1,
@@ -375,8 +386,9 @@ void main() {
     blocTest<NotesBloc, NotesState>(
       'assigns TimeCategory.last7Days for a note from this week',
       build: () {
-        when(() => mockRepo.getAllNotes())
-            .thenAnswer((_) async => [thisWeekNote('w1')]);
+        when(
+          () => mockRepo.getAllNotes(),
+        ).thenAnswer((_) async => [thisWeekNote('w1')]);
         return NotesBloc(noteRepository: mockRepo);
       },
       skip: 1,
@@ -390,21 +402,18 @@ void main() {
     );
 
     blocTest<NotesBloc, NotesState>(
-      'assigns TimeCategory.last7Days for a note from last week',
+      'assigns TimeCategory.last7Days for a note 6 days ago',
       build: () {
-        when(() => mockRepo.getAllNotes())
-            .thenAnswer((_) async => [lastWeekNote('lw1')]);
+        when(
+          () => mockRepo.getAllNotes(),
+        ).thenAnswer((_) async => [lastWeekNote('lw1')]);
         return NotesBloc(noteRepository: mockRepo);
       },
       skip: 1,
       act: (bloc) => bloc.add(LoadNotes()),
       verify: (bloc) {
-        final categories = extractCategories(bloc.state.groupedNotes);
         expect(
-          categories.any(
-            (c) =>
-                c == TimeCategory.last7Days || c == TimeCategory.lastMonth,
-          ),
+          hasCategory(bloc.state.groupedNotes, TimeCategory.last7Days),
           isTrue,
         );
       },
@@ -413,8 +422,9 @@ void main() {
     blocTest<NotesBloc, NotesState>(
       'assigns TimeCategory.lastMonth or last7Days for a note from this month start',
       build: () {
-        when(() => mockRepo.getAllNotes())
-            .thenAnswer((_) async => [thisMonthNote('tm1')]);
+        when(
+          () => mockRepo.getAllNotes(),
+        ).thenAnswer((_) async => [thisMonthNote('tm1')]);
         return NotesBloc(noteRepository: mockRepo);
       },
       skip: 2,
@@ -423,8 +433,7 @@ void main() {
         final categories = extractCategories(bloc.state.groupedNotes);
         expect(
           categories.any(
-            (c) =>
-                c == TimeCategory.lastMonth || c == TimeCategory.last7Days,
+            (c) => c == TimeCategory.lastMonth || c == TimeCategory.last7Days,
           ),
           isTrue,
         );
@@ -434,8 +443,9 @@ void main() {
     blocTest<NotesBloc, NotesState>(
       'assigns TimeCategory.lastMonth for a note from last month',
       build: () {
-        when(() => mockRepo.getAllNotes())
-            .thenAnswer((_) async => [lastMonthNote('lm1')]);
+        when(
+          () => mockRepo.getAllNotes(),
+        ).thenAnswer((_) async => [lastMonthNote('lm1')]);
         return NotesBloc(noteRepository: mockRepo);
       },
       skip: 1,
@@ -451,8 +461,9 @@ void main() {
     blocTest<NotesBloc, NotesState>(
       'assigns TimeCategory.custom for a note older than 30 days',
       build: () {
-        when(() => mockRepo.getAllNotes())
-            .thenAnswer((_) async => [olderNote('o1')]);
+        when(
+          () => mockRepo.getAllNotes(),
+        ).thenAnswer((_) async => [olderNote('o1')]);
         return NotesBloc(noteRepository: mockRepo);
       },
       skip: 1,
@@ -468,16 +479,17 @@ void main() {
     blocTest<NotesBloc, NotesState>(
       'custom TimeGroup has a non-null customLabel formatted as "MMMM yyyy"',
       build: () {
-        when(() => mockRepo.getAllNotes())
-            .thenAnswer((_) async => [olderNote('o1')]);
+        when(
+          () => mockRepo.getAllNotes(),
+        ).thenAnswer((_) async => [olderNote('o1')]);
         return NotesBloc(noteRepository: mockRepo);
       },
       skip: 1,
       act: (bloc) => bloc.add(LoadNotes()),
       verify: (bloc) {
-        final customGroups = extractTimeGroups(bloc.state.groupedNotes)
-            .where((g) => g.category == TimeCategory.custom)
-            .toList();
+        final customGroups = extractTimeGroups(
+          bloc.state.groupedNotes,
+        ).where((g) => g.category == TimeCategory.custom).toList();
         expect(customGroups, isNotEmpty);
         expect(customGroups.first.customLabel, isNotNull);
         expect(
@@ -499,8 +511,9 @@ void main() {
       act: (bloc) => bloc.add(LoadNotes()),
       verify: (bloc) {
         final groups = extractTimeGroups(bloc.state.groupedNotes);
-        final recentCount =
-            groups.where((g) => g.category == TimeCategory.recent).length;
+        final recentCount = groups
+            .where((g) => g.category == TimeCategory.recent)
+            .length;
         expect(recentCount, 1);
       },
     );
@@ -508,9 +521,9 @@ void main() {
     blocTest<NotesBloc, NotesState>(
       'inserts a new TimeGroup when the time category changes across notes',
       build: () {
-        when(() => mockRepo.getAllNotes()).thenAnswer(
-          (_) async => [recentNote('r1'), lastMonthNote('lm1')],
-        );
+        when(
+          () => mockRepo.getAllNotes(),
+        ).thenAnswer((_) async => [recentNote('r1'), lastMonthNote('lm1')]);
         return NotesBloc(noteRepository: mockRepo);
       },
       skip: 1,
@@ -526,9 +539,9 @@ void main() {
     blocTest<NotesBloc, NotesState>(
       'flattened list alternates TimeGroups and NoteMetaData in correct order',
       build: () {
-        when(() => mockRepo.getAllNotes()).thenAnswer(
-          (_) async => [recentNote('r1'), lastMonthNote('lm1')],
-        );
+        when(
+          () => mockRepo.getAllNotes(),
+        ).thenAnswer((_) async => [recentNote('r1'), lastMonthNote('lm1')]);
         return NotesBloc(noteRepository: mockRepo);
       },
       skip: 1,
@@ -546,8 +559,9 @@ void main() {
     blocTest<NotesBloc, NotesState>(
       'single note produces exactly one TimeGroup and one NoteMetaData',
       build: () {
-        when(() => mockRepo.getAllNotes())
-            .thenAnswer((_) async => [recentNote('r1')]);
+        when(
+          () => mockRepo.getAllNotes(),
+        ).thenAnswer((_) async => [recentNote('r1')]);
         return NotesBloc(noteRepository: mockRepo);
       },
       skip: 1,
@@ -625,8 +639,9 @@ void main() {
       act: (bloc) => bloc.add(LoadMoreNotes()),
       verify: (bloc) {
         final groups = extractTimeGroups(bloc.state.groupedNotes);
-        final recentCount =
-            groups.where((g) => g.category == TimeCategory.recent).length;
+        final recentCount = groups
+            .where((g) => g.category == TimeCategory.recent)
+            .length;
         expect(recentCount, 1);
       },
     );
@@ -738,8 +753,11 @@ void main() {
       },
       expect: () => [
         isA<NotesState>().having((s) => s.isLoadingMore, 'isLoadingMore', true),
-        isA<NotesState>()
-            .having((s) => s.isLoadingMore, 'isLoadingMore', false),
+        isA<NotesState>().having(
+          (s) => s.isLoadingMore,
+          'isLoadingMore',
+          false,
+        ),
       ],
     );
   });
@@ -823,7 +841,7 @@ void main() {
       },
       seed: () => NotesState(
         notes: buildNoteList(3),
-        groupedNotes: const [],
+        groupedNotes: [],
         currentPage: 2,
         hasMore: false,
       ),
@@ -839,8 +857,9 @@ void main() {
       build: () {
         final notes = buildNoteList(3);
         when(() => mockRepo.getAllNotes()).thenAnswer((_) async => notes);
-        when(() => mockRepo.getNoteById('missing'))
-            .thenAnswer((_) async => null);
+        when(
+          () => mockRepo.getNoteById('missing'),
+        ).thenAnswer((_) async => null);
         return NotesBloc(noteRepository: mockRepo);
       },
       skip: 2,
@@ -853,8 +872,9 @@ void main() {
       build: () {
         final notes = buildNoteList(3);
         when(() => mockRepo.getAllNotes()).thenAnswer((_) async => notes);
-        when(() => mockRepo.getNoteById(any()))
-            .thenThrow(Exception('fetch error'));
+        when(
+          () => mockRepo.getNoteById(any()),
+        ).thenThrow(Exception('fetch error'));
         return NotesBloc(noteRepository: mockRepo);
       },
       skip: 2,
@@ -868,10 +888,10 @@ void main() {
       build: () {
         // Note with an old update time goes to lastMonth, not recent
         final oldNote = lastMonthNote('old_note');
-        when(() => mockRepo.getAllNotes())
-            .thenAnswer((_) async => [oldNote]);
-        when(() => mockRepo.getNoteById('old_note'))
-            .thenAnswer((_) async => oldNote);
+        when(() => mockRepo.getAllNotes()).thenAnswer((_) async => [oldNote]);
+        when(
+          () => mockRepo.getNoteById('old_note'),
+        ).thenAnswer((_) async => oldNote);
         return NotesBloc(noteRepository: mockRepo);
       },
       skip: 2,
@@ -889,13 +909,13 @@ void main() {
       build: () {
         final notes = buildNoteList(5);
         when(() => mockRepo.getAllNotes()).thenAnswer((_) async => notes);
-        when(() => mockRepo.deleteNotes(['note_0', 'note_1']))
-            .thenAnswer((_) async {});
+        when(
+          () => mockRepo.deleteNotes(['note_0', 'note_1']),
+        ).thenAnswer((_) async {});
         return NotesBloc(noteRepository: mockRepo);
       },
       skip: 2,
-      act: (bloc) =>
-          bloc.add(DeleteNotes(noteIds: ['note_0', 'note_1'])),
+      act: (bloc) => bloc.add(DeleteNotes(noteIds: ['note_0', 'note_1'])),
       verify: (bloc) {
         final ids = bloc.state.notes.map((n) => n.id).toList();
         expect(ids, isNot(contains('note_0')));
@@ -929,8 +949,8 @@ void main() {
       },
       seed: () => NotesState(
         notes: buildNoteList(3),
-        groupedNotes: const [],
-        selectedNotes: const ['note_0'],
+        groupedNotes: [],
+        selectedNotes: ['note_0'],
         isSelectionMode: true,
       ),
       skip: 2,
@@ -946,14 +966,15 @@ void main() {
       build: () {
         final notes = buildNoteList(5);
         when(() => mockRepo.getAllNotes()).thenAnswer((_) async => notes);
-        when(() => mockRepo.deleteNotes(['note_0', 'note_1']))
-            .thenAnswer((_) async {});
+        when(
+          () => mockRepo.deleteNotes(['note_0', 'note_1']),
+        ).thenAnswer((_) async {});
         return NotesBloc(noteRepository: mockRepo);
       },
       seed: () => NotesState(
         notes: buildNoteList(5),
-        groupedNotes: const [],
-        selectedNotes: const ['note_0', 'note_1'],
+        groupedNotes: [],
+        selectedNotes: ['note_0', 'note_1'],
         isSelectionMode: true,
       ),
       skip: 2,
@@ -985,8 +1006,9 @@ void main() {
       build: () {
         final notes = buildNoteList(3);
         when(() => mockRepo.getAllNotes()).thenAnswer((_) async => notes);
-        when(() => mockRepo.deleteNotes(any()))
-            .thenThrow(Exception('db error'));
+        when(
+          () => mockRepo.deleteNotes(any()),
+        ).thenThrow(Exception('db error'));
         return NotesBloc(noteRepository: mockRepo);
       },
       skip: 2,
@@ -1006,7 +1028,7 @@ void main() {
       },
       seed: () => NotesState(
         notes: buildNoteList(5),
-        groupedNotes: const [],
+        groupedNotes: [],
         currentPage: 2,
         isSelectionMode: false,
       ),
@@ -1132,8 +1154,10 @@ void main() {
         bloc.add(ToggleNoteSelection(noteId: 'note_2'));
       },
       verify: (bloc) {
-        expect(bloc.state.selectedNotes,
-            containsAll(['note_0', 'note_1', 'note_2']));
+        expect(
+          bloc.state.selectedNotes,
+          containsAll(['note_0', 'note_1', 'note_2']),
+        );
         expect(bloc.state.selectedNotes.length, 3);
       },
     );
@@ -1162,8 +1186,9 @@ void main() {
       'selects all visible (paginated) notes and sets isSelectionMode=true',
       build: () {
         // 3 notes — constructor's LoadNotes loads them all into groupedNotes
-        when(() => mockRepo.getAllNotes())
-            .thenAnswer((_) async => buildNoteList(3));
+        when(
+          () => mockRepo.getAllNotes(),
+        ).thenAnswer((_) async => buildNoteList(3));
         return NotesBloc(noteRepository: mockRepo);
       },
       skip: 2, // skip constructor loading + loaded states
@@ -1177,8 +1202,9 @@ void main() {
     blocTest<NotesBloc, NotesState>(
       'deselects all notes when all are already selected (toggle off)',
       build: () {
-        when(() => mockRepo.getAllNotes())
-            .thenAnswer((_) async => buildNoteList(3));
+        when(
+          () => mockRepo.getAllNotes(),
+        ).thenAnswer((_) async => buildNoteList(3));
         return NotesBloc(noteRepository: mockRepo);
       },
       skip: 2,
@@ -1199,8 +1225,9 @@ void main() {
       build: () {
         // pageSize + 5 notes: constructor loads first pageSize into groupedNotes,
         // remaining 5 stay in state.notes but are not visible yet
-        when(() => mockRepo.getAllNotes())
-            .thenAnswer((_) async => buildNoteList(NotesState.pageSize + 5));
+        when(
+          () => mockRepo.getAllNotes(),
+        ).thenAnswer((_) async => buildNoteList(NotesState.pageSize + 5));
         return NotesBloc(noteRepository: mockRepo);
       },
       skip: 2,
@@ -1218,8 +1245,9 @@ void main() {
     blocTest<NotesBloc, NotesState>(
       'clears selectedNotes and sets isSelectionMode=false',
       build: () {
-        when(() => mockRepo.getAllNotes())
-            .thenAnswer((_) async => buildNoteList(3));
+        when(
+          () => mockRepo.getAllNotes(),
+        ).thenAnswer((_) async => buildNoteList(3));
         return NotesBloc(noteRepository: mockRepo);
       },
       skip: 2,
@@ -1253,8 +1281,9 @@ void main() {
     blocTest<NotesBloc, NotesState>(
       'does not affect notes or groupedNotes',
       build: () {
-        when(() => mockRepo.getAllNotes())
-            .thenAnswer((_) async => buildNoteList(3));
+        when(
+          () => mockRepo.getAllNotes(),
+        ).thenAnswer((_) async => buildNoteList(3));
         return NotesBloc(noteRepository: mockRepo);
       },
       skip: 2,
