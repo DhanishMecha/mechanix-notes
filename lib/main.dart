@@ -19,8 +19,9 @@ import 'package:show_fps/show_fps.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  Hive.registerAdapter(NoteModelAdapter());
-
+  if (!Hive.isAdapterRegistered(0)) {
+    Hive.registerAdapter(NoteModelAdapter());
+  }
   runApp(
     MultiRepositoryProvider(
       providers: [

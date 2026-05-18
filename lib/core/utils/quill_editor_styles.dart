@@ -3,10 +3,10 @@ import 'package:flutter_quill/flutter_quill.dart';
 
 DefaultStyles quillEditorStyle(BuildContext context) {
   return const DefaultStyles(
-    bold: const TextStyle(fontWeight: FontWeight.w700),
-    italic: const TextStyle(fontStyle: FontStyle.italic),
-    underline: const TextStyle(decoration: TextDecoration.underline),
-    paragraph: const DefaultTextBlockStyle(
+    bold: TextStyle(fontWeight: FontWeight.w700),
+    italic: TextStyle(fontStyle: FontStyle.italic),
+    underline: TextStyle(decoration: TextDecoration.underline),
+    paragraph: DefaultTextBlockStyle(
       TextStyle(
         fontSize: 20,
         fontWeight: FontWeight.w400,
@@ -21,7 +21,7 @@ DefaultStyles quillEditorStyle(BuildContext context) {
       null,
     ),
 
-    h1: const DefaultTextBlockStyle(
+    h1: DefaultTextBlockStyle(
       TextStyle(
         fontSize: 26,
         fontWeight: FontWeight.w700,
@@ -36,7 +36,7 @@ DefaultStyles quillEditorStyle(BuildContext context) {
       null,
     ),
 
-    h2: const DefaultTextBlockStyle(
+    h2: DefaultTextBlockStyle(
       TextStyle(
         fontSize: 22,
         fontWeight: FontWeight.w700,
@@ -51,7 +51,7 @@ DefaultStyles quillEditorStyle(BuildContext context) {
       null,
     ),
 
-    h3: const DefaultTextBlockStyle(
+    h3: DefaultTextBlockStyle(
       TextStyle(
         fontSize: 20,
         fontWeight: FontWeight.w600,
@@ -66,7 +66,7 @@ DefaultStyles quillEditorStyle(BuildContext context) {
       null,
     ),
 
-    placeHolder: const DefaultTextBlockStyle(
+    placeHolder: DefaultTextBlockStyle(
       TextStyle(
         fontSize: 18,
         fontWeight: FontWeight.w400,
@@ -80,7 +80,7 @@ DefaultStyles quillEditorStyle(BuildContext context) {
       VerticalSpacing(0, 0),
       null,
     ),
-    quote: const DefaultTextBlockStyle(
+    quote: DefaultTextBlockStyle(
       TextStyle(
         fontSize: 18,
         color: Colors.white,
@@ -96,7 +96,7 @@ DefaultStyles quillEditorStyle(BuildContext context) {
       ),
     ),
 
-    code: const DefaultTextBlockStyle(
+    code: DefaultTextBlockStyle(
       TextStyle(
         fontSize: 18,
         fontWeight: FontWeight.w500,

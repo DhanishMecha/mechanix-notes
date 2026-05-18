@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:mechanix_notes/main.dart' as app;
 import 'package:mechanix_notes/core/utils/icons.dart';
-import 'package:mechanix_notes/features/notes/presentation/widgets/home/home_note_card.dart';
 import 'test_helper.dart';
 
 void main() {

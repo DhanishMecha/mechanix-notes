@@ -4,7 +4,6 @@ import 'package:integration_test/integration_test.dart';
 import 'package:mechanix_notes/main.dart' as app;
 import 'package:mechanix_notes/core/utils/icons.dart';
 import 'test_helper.dart';
-import 'package:flutter_quill/flutter_quill.dart' show QuillEditor;
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
