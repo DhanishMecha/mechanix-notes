@@ -1,0 +1,18 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mechanix_notes/features/notes/bloc/search/search_bloc.dart';
+import 'package:mechanix_notes/features/notes/data/repository/search_repository.dart';
+import 'package:mechanix_notes/features/notes/presentation/widgets/search/search_view.dart';
+
+class SearchScreen extends StatelessWidget {
+  const SearchScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) =>
+          SearchBloc(searchRepository: context.read<SearchRepository>()),
+      child: const Scaffold(backgroundColor: Colors.black, body: SearchView()),
+    );
+  }
+}

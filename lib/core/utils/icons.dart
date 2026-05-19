@@ -23,4 +23,5 @@ class NotesIcon {
   static const String closeIcon = "assets/icons/close.png";
   static const String codeBlockIcon = "assets/icons/code_block.png";
   static const String selectAllIcon = "assets/icons/selectall.png";
+  static const String cancelIcon = "assets/icons/cancel.png";
 }

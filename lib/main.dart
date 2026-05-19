@@ -12,8 +12,11 @@ import 'package:mechanix_notes/features/notes/data/repository/note_repository.da
 import 'package:mechanix_notes/features/notes/data/repository/note_repository_impl.dart';
 import 'package:mechanix_notes/features/notes/data/repository/editor_repository.dart';
 import 'package:mechanix_notes/features/notes/data/repository/editor_repository_impl.dart';
+import 'package:mechanix_notes/features/notes/data/repository/search_repository.dart';
+import 'package:mechanix_notes/features/notes/data/repository/search_repository_impl.dart';
 import 'package:mechanix_notes/features/notes/presentation/screens/editor.dart';
 import 'package:mechanix_notes/features/notes/presentation/screens/home.dart';
+import 'package:mechanix_notes/features/notes/presentation/screens/search.dart';
 import 'package:mechanix_notes/l10n/notes_localizations.dart';
 import 'package:show_fps/show_fps.dart';
 
@@ -28,6 +31,9 @@ void main() {
         RepositoryProvider<NoteRepository>(create: (_) => NoteRepositoryImpl()),
         RepositoryProvider<EditorRepository>(
           create: (_) => EditorRepositoryImpl(),
+        ),
+        RepositoryProvider<SearchRepository>(
+          create: (_) => SearchRepositoryImpl(),
         ),
       ],
       child: MultiBlocProvider(
@@ -68,7 +74,10 @@ class NotesApp extends StatelessWidget {
         FlutterQuillLocalizations.delegate,
       ],
       supportedLocales: AppLocalizations.supportedLocales,
-      routes: {AppRoutes.noteEditor: (context) => const EditorScreen()},
+      routes: {
+        AppRoutes.noteEditor: (context) => const EditorScreen(),
+        AppRoutes.search: (context) => const SearchScreen(),
+      },
     );
   }
 }

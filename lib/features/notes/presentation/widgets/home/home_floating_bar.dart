@@ -19,33 +19,36 @@ class HomeFloatingBar extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.end,
           mainAxisSize: MainAxisSize.min,
           children: [
-            // TODO: In phase 2 it will be covered
-            // BlocSelector<NotesBloc, NotesState, bool>(
-            //   selector: (state) => state.notes.isNotEmpty,
-            //   builder: (context, hasNotes) {
-            //     return FloatingActionButton.small(
-            //       mouseCursor: SystemMouseCursors.basic,
-            //       heroTag: 'search',
-            //       onPressed: null,
-            //       backgroundColor: NotesColors.bottomBarBg,
-            //       shape: RoundedRectangleBorder(
-            //         borderRadius: BorderRadius.circular(4),
-            //         side: const BorderSide(
-            //           color: NotesColors.borderColor,
-            //           width: 0.5,
-            //         ),
-            //       ),
-            //       child: Image.asset(
-            //         NotesIcon.searchIcon,
-            //         width: 20,
-            //         height: 20,
-            //         color: Colors.white30,
-            //       ),
-            //     );
-            //   },
-            // ),
+            BlocSelector<NotesBloc, NotesState, bool>(
+              selector: (state) => state.notes.isNotEmpty,
+              builder: (context, hasNotes) {
+                return FloatingActionButton.small(
+                  mouseCursor: SystemMouseCursors.click,
+                  heroTag: 'search',
+                  onPressed: hasNotes
+                      ? () {
+                          Navigator.pushNamed(context, '/search');
+                        }
+                      : null,
+                  backgroundColor: NotesColors.bottomBarBg,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(4),
+                    side: const BorderSide(
+                      color: NotesColors.borderColor,
+                      width: 0.5,
+                    ),
+                  ),
+                  child: Image.asset(
+                    NotesIcon.searchIcon,
+                    width: 20,
+                    height: 20,
+                    color: hasNotes ? Colors.white : Colors.white30,
+                  ),
+                );
+              },
+            ),
 
-            // const SizedBox(height: 12),
+            const SizedBox(height: 12),
             FloatingActionButton(
               mouseCursor: SystemMouseCursors.click,
               heroTag: 'create',

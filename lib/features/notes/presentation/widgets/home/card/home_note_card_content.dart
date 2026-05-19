@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:mechanix_notes/core/utils/colors.dart';
-import 'package:mechanix_notes/core/widgets/clickable_region.dart';
 import 'package:mechanix_notes/features/notes/data/models/note_metadata.dart';
 import 'package:mechanix_notes/features/notes/presentation/widgets/home/card/home_card_icon.dart';
 import 'package:mechanix_notes/features/notes/presentation/widgets/home/card/home_card_selection_icon.dart';
@@ -25,27 +24,25 @@ class HomeNoteCardContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ClickableRegion(
-      child: GestureDetector(
-        behavior: HitTestBehavior.translucent,
-        onLongPress: isSelectionMode ? null : onLongPress,
-        onTap: onTap,
-        child: Container(
-          color: isSelected
-              ? Colors.white.withValues(alpha: 0.05)
-              : Colors.transparent,
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _HomeNoteCardLeadingIcon(
-                isSelectionMode: isSelectionMode,
-                isSelected: isSelected,
-              ),
-              const SizedBox(width: 16),
-              Expanded(child: _HomeNoteCardText(note: note)),
-            ],
-          ),
+    return InkWell(
+      mouseCursor: SystemMouseCursors.click,
+      onLongPress: isSelectionMode ? null : onLongPress,
+      onTap: onTap,
+      child: Container(
+        color: isSelected
+            ? Colors.white.withValues(alpha: 0.05)
+            : Colors.transparent,
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _HomeNoteCardLeadingIcon(
+              isSelectionMode: isSelectionMode,
+              isSelected: isSelected,
+            ),
+            const SizedBox(width: 16),
+            Expanded(child: _HomeNoteCardText(note: note)),
+          ],
         ),
       ),
     );

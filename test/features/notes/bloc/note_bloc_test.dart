@@ -841,7 +841,7 @@ void main() {
       },
       seed: () => NotesState(
         notes: buildNoteList(3),
-        groupedNotes: [],
+        groupedNotes: const [],
         currentPage: 2,
         hasMore: false,
       ),
@@ -949,8 +949,8 @@ void main() {
       },
       seed: () => NotesState(
         notes: buildNoteList(3),
-        groupedNotes: [],
-        selectedNotes: ['note_0'],
+        groupedNotes: const [],
+        selectedNotes: const ['note_0'],
         isSelectionMode: true,
       ),
       skip: 2,
@@ -973,8 +973,8 @@ void main() {
       },
       seed: () => NotesState(
         notes: buildNoteList(5),
-        groupedNotes: [],
-        selectedNotes: ['note_0', 'note_1'],
+        groupedNotes: const [],
+        selectedNotes: const ['note_0', 'note_1'],
         isSelectionMode: true,
       ),
       skip: 2,
@@ -1028,7 +1028,7 @@ void main() {
       },
       seed: () => NotesState(
         notes: buildNoteList(5),
-        groupedNotes: [],
+        groupedNotes: const [],
         currentPage: 2,
         isSelectionMode: false,
       ),
