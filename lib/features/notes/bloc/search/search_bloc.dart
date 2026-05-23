@@ -23,7 +23,13 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
       return;
     }
 
-    emit(state.copyWith(status: SearchStatus.loading, query: query));
+    emit(
+      state.copyWith(
+        status: SearchStatus.loading,
+        query: query,
+        isLoadingMore: false,
+      ),
+    );
     AppLogger.i("Searching notes for query: $query");
 
     try {
@@ -41,11 +47,12 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
           allFilteredNotes: filteredNotes,
           hasMore: hasMore,
           currentPage: 0,
+          isLoadingMore: false,
         ),
       );
     } catch (e) {
       AppLogger.e("Error searching notes: $e");
-      emit(state.copyWith(status: SearchStatus.failure));
+      emit(state.copyWith(status: SearchStatus.failure, isLoadingMore: false));
     }
   }
 

@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
+import 'package:mechanix_notes/core/utils/icons.dart';
 import 'package:mechanix_notes/features/notes/data/models/note_model.dart';
 import 'package:mechanix_notes/features/notes/presentation/widgets/editor/editor_button.dart';
 import 'package:flutter_quill/flutter_quill.dart' show QuillEditor;
@@ -67,5 +68,73 @@ class IntegrationTestHelper {
       final editorWidget = tester.widget<QuillEditor>(quillEditorFinder);
       editorWidget.controller.document.insert(0, text);
     }
+  }
+
+  // -------------------------------------------------------------------------
+  // Search helpers
+  // -------------------------------------------------------------------------
+
+  static Finder get searchFab => find.byWidgetPredicate(
+    (widget) => widget is FloatingActionButton && widget.heroTag == 'search',
+  );
+
+  static Finder get searchTextField => find.byWidgetPredicate(
+    (widget) =>
+        widget is TextField && widget.decoration?.hintText == 'Search in notes',
+  );
+
+  static Finder get searchCancelButton => find.byIcon(Icons.cancel);
+
+  /// Creates a note with [title], waits for autosave, and returns to home.
+  static Future<void> createNoteWithTitle(
+    WidgetTester tester,
+    String title, {
+    String? body,
+  }) async {
+    await tester.tap(findImageAsset(NotesIcon.createIcon));
+    await tester.pumpAndSettle();
+    await waitForEditor(tester);
+
+    await tester.enterText(find.byType(TextField).first, title);
+    await tester.pump(const Duration(milliseconds: 500));
+
+    if (body != null) {
+      await enterQuillText(tester, body);
+      await tester.pump(const Duration(milliseconds: 500));
+    }
+
+    await tester.pump(const Duration(seconds: 2));
+    await tester.pumpAndSettle();
+
+    await tester.tap(findImageAsset(NotesIcon.backIcon));
+    await tester.pumpAndSettle();
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pumpAndSettle();
+  }
+
+  static Future<void> openSearch(WidgetTester tester) async {
+    await tester.tap(searchFab);
+    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 500));
+  }
+
+  /// Types in the search field and waits for the 400 ms debounce.
+  static Future<void> enterSearchQuery(
+    WidgetTester tester,
+    String query,
+  ) async {
+    await tester.enterText(searchTextField, query);
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pumpAndSettle();
+  }
+
+  static Future<void> clearSearchQuery(WidgetTester tester) async {
+    await tester.tap(searchCancelButton);
+    await tester.pumpAndSettle();
+  }
+
+  static Future<void> closeSearchScreen(WidgetTester tester) async {
+    await tester.tap(searchCancelButton);
+    await tester.pumpAndSettle();
   }
 }
