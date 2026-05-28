@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_quill/flutter_quill.dart';
@@ -15,7 +16,7 @@ part 'editor_state.dart';
 class EditorBloc extends Bloc<EditorEvent, EditorState> {
   final EditorRepository _repository;
 
-  EditorBloc(this._repository) : super(EditorInitial()) {
+  EditorBloc(this._repository) : super(const EditorInitial()) {
     on<EditorInitialised>(_onInitialised);
     on<EditorTitleChanged>(_onTitleChanged);
     on<EditorToolbarToggled>(_onToolbarToggled);
@@ -23,8 +24,7 @@ class EditorBloc extends Bloc<EditorEvent, EditorState> {
     on<EditorAutoSaveRequested>(_onAutoSaveRequested);
   }
 
-  // ─── Handlers ────────────────────────────────────────────────────────────────
-
+  // Event Handlers
   Future<void> _onInitialised(
     EditorInitialised event,
     Emitter<EditorState> emit,
@@ -46,7 +46,7 @@ class EditorBloc extends Bloc<EditorEvent, EditorState> {
 
         if (note == null) {
           AppLogger.e('EditorBloc: Note not found for id ${event.noteId}');
-          emit(EditorFailure(ErrorCategory.noteNotFound));
+          emit(const EditorFailure(ErrorCategory.noteNotFound));
           return;
         }
 
@@ -78,7 +78,7 @@ class EditorBloc extends Bloc<EditorEvent, EditorState> {
       }
     } catch (e) {
       AppLogger.e('EditorBloc: Failed to load note: $e');
-      emit(EditorFailure(ErrorCategory.somethingWentWrong));
+      emit(const EditorFailure(ErrorCategory.somethingWentWrong));
     }
   }
 
@@ -117,7 +117,7 @@ class EditorBloc extends Bloc<EditorEvent, EditorState> {
       if (isEmpty) {
         if (current.isNewNote) {
           AppLogger.i('EditorBloc: Discarding empty new note');
-          emit(EditorDiscarded());
+          emit(const EditorDiscarded());
         } else {
           AppLogger.i('EditorBloc: Deleting existing note because it is empty');
           emit(EditorDeleteRequest(current.noteId));
@@ -125,7 +125,7 @@ class EditorBloc extends Bloc<EditorEvent, EditorState> {
         return;
       }
 
-      // Check if it's unchanged
+      // Check if content is unchanged
       if (existing != null) {
         if (existing.title == current.title && existing.content == deltaJson) {
           AppLogger.i('EditorBloc: Discarding unchanged edit');
@@ -164,7 +164,7 @@ class EditorBloc extends Bloc<EditorEvent, EditorState> {
       emit(EditorSaveSuccess(current.noteId));
     } catch (e) {
       AppLogger.e('EditorBloc: Manual save failed: $e');
-      emit(EditorFailure(ErrorCategory.failedToSaveNote));
+      emit(const EditorFailure(ErrorCategory.failedToSaveNote));
     }
   }
 
@@ -225,7 +225,7 @@ class EditorBloc extends Bloc<EditorEvent, EditorState> {
     }
   }
 
-  // ─── Helpers ─────────────────────────────────────────────────────────────────
+  // Helpers
 
   double _estimateHeight(String plainText) {
     const lineHeight = 24.0;

@@ -38,8 +38,9 @@ Matcher stateMatching({
   return predicate<SearchState>((s) {
     if (status != null && s.status != status) return false;
     if (query != null && s.query != query) return false;
-    if (resultsLength != null && s.results.length != resultsLength)
+    if (resultsLength != null && s.results.length != resultsLength) {
       return false;
+    }
     if (allFilteredLength != null &&
         s.allFilteredNotes.length != allFilteredLength) {
       return false;

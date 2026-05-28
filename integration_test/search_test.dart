@@ -21,7 +21,9 @@ void main() {
       await helper.tearDown();
     });
 
-    testWidgets('search FAB is disabled when there are no notes', (tester) async {
+    testWidgets('search FAB is disabled when there are no notes', (
+      tester,
+    ) async {
       app.main();
       await tester.pumpAndSettle();
 
@@ -111,7 +113,9 @@ void main() {
       expect(find.text(title), findsOneWidget);
     });
 
-    testWidgets('shows no results message when nothing matches', (tester) async {
+    testWidgets('shows no results message when nothing matches', (
+      tester,
+    ) async {
       app.main();
       await tester.pumpAndSettle();
 
@@ -130,7 +134,9 @@ void main() {
       expect(find.text('No notes found'), findsOneWidget);
     });
 
-    testWidgets('clearing query returns to initial search prompt', (tester) async {
+    testWidgets('clearing query returns to initial search prompt', (
+      tester,
+    ) async {
       app.main();
       await tester.pumpAndSettle();
 
@@ -169,8 +175,9 @@ void main() {
       expect(find.text('Type to search'), findsNothing);
     });
 
-    testWidgets('opens a note from search results and returns to search',
-        (tester) async {
+    testWidgets('opens a note from search results and returns to search', (
+      tester,
+    ) async {
       app.main();
       await tester.pumpAndSettle();
 

@@ -1,22 +1,21 @@
-# 📝 Mechanix Notes
+# Mechanix Notes
 
 Notes App for the Mechanix OS
 
-## 📖 Overview
+## Overview
 
 Mechanix Notes is a simple and lightweight note-taking application built with Flutter for Mecha Comet devices. It provides an easy way to create, edit, and manage notes with a clean and user-friendly interface.
 
 ---
 
-## 📦 Install Guide
+## Install Guide
 
-### 📝 Pre-requisites
+### Pre-requisites
 
 - [Flutter-Elinux SDK](https://github.com/flutter-elinux/flutter-elinux)
 - [Dart SDK](https://dart.dev/get-dart)
 
-
-### 🚀 Steps to Run Notes App
+### Steps to Run Notes App
 
 1. Clone the repository:
 
@@ -33,24 +32,36 @@ For flutter-elinux:
 flutter-elinux pub get
 ```
 
-3. Build and Run:
+3. Run the Application
 
-For flutter-elinux:
+### Run on eLinux
 
 ```bash
-flutter-elinux build
 flutter-elinux run
 ```
 
----
+## Testing
 
-## 🔑 Key Features
+### Run Unit & BLoC Tests
 
-* **Create Notes**: Quickly create and save notes.
-* **Edit Notes**: Update existing notes anytime.
-* **Delete Notes**: Remove unwanted notes easily.
-* **Search Notes**: Find notes instantly with search functionality.
-* **Persistent Storage**: Notes are stored locally on the device.
-* **Clean UI**: Minimal and user-friendly interface optimized for Mechanix OS.
-* **Rich Text Support**: Basic text formatting support for better note organization.
+```bash
+flutter-elinux test
+```
+
+### Run Integration Tests
+
+```bash
+flutter-elinux test integration_test/<test-file-name>
+```
+
+## Key Features
+
+- **Create Notes**: Quickly create and save notes.
+- **Edit Notes**: Update existing notes anytime.
+- **Delete Notes**: Remove unwanted notes easily.
+- **Search Notes**: Find notes instantly with search functionality.
+- **Persistent Storage**: Notes are stored locally on the device.
+- **Clean UI**: Minimal and user-friendly interface optimized for Mechanix OS.
+- **Rich Text Support**: Basic text formatting support for better note organization.
+
 ---

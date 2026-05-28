@@ -343,7 +343,7 @@ void main() {
     blocTest<EditorBloc, EditorState>(
       'multiple title changes only keeps last value',
       build: buildBloc,
-      seed: () => EditorLoaded(noteId: kTestNoteId, title: '', isNewNote: true),
+      seed: () => const EditorLoaded(noteId: kTestNoteId, title: '', isNewNote: true),
       act: (bloc) {
         bloc.add(EditorTitleChanged('A'));
         bloc.add(EditorTitleChanged('AB'));
@@ -363,7 +363,7 @@ void main() {
     blocTest<EditorBloc, EditorState>(
       'activates a toolbar when none is active',
       build: buildBloc,
-      seed: () => EditorLoaded(
+      seed: () => const EditorLoaded(
         noteId: kTestNoteId,
         title: kTestTitle,
         activeToolbar: EditorToolbar.none,
@@ -382,7 +382,7 @@ void main() {
     blocTest<EditorBloc, EditorState>(
       'closes toolbar when same toolbar toggled again',
       build: buildBloc,
-      seed: () => EditorLoaded(
+      seed: () => const EditorLoaded(
         noteId: kTestNoteId,
         title: kTestTitle,
         activeToolbar: EditorToolbar.textStyle,
@@ -401,7 +401,7 @@ void main() {
     blocTest<EditorBloc, EditorState>(
       'switches from one toolbar to another',
       build: buildBloc,
-      seed: () => EditorLoaded(
+      seed: () => const EditorLoaded(
         noteId: kTestNoteId,
         title: kTestTitle,
         activeToolbar: EditorToolbar.textStyle,
@@ -423,7 +423,7 @@ void main() {
       blocTest<EditorBloc, EditorState>(
         'can activate toolbar: $toolbar',
         build: buildBloc,
-        seed: () => EditorLoaded(
+        seed: () => const EditorLoaded(
           noteId: kTestNoteId,
           title: kTestTitle,
           activeToolbar: EditorToolbar.none,
@@ -446,7 +446,7 @@ void main() {
     blocTest<EditorBloc, EditorState>(
       'toggling none toolbar when already none keeps it none',
       build: buildBloc,
-      seed: () => EditorLoaded(
+      seed: () => const EditorLoaded(
         noteId: kTestNoteId,
         title: kTestTitle,
         activeToolbar: EditorToolbar.none,
@@ -1815,7 +1815,7 @@ void main() {
     blocTest<EditorBloc, EditorState>(
       'events after EditorFailure are ignored if state is not EditorLoaded',
       build: buildBloc,
-      seed: () => EditorFailure(ErrorCategory.somethingWentWrong),
+      seed: () => const EditorFailure(ErrorCategory.somethingWentWrong),
       act: (bloc) {
         bloc.add(EditorTitleChanged('Should be ignored'));
         bloc.add(EditorToolbarToggled(EditorToolbar.menu));
