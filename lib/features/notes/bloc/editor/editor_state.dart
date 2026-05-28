@@ -1,11 +1,19 @@
 part of 'editor_bloc.dart';
 
+sealed class EditorState extends Equatable {
+  const EditorState();
 
-sealed class EditorState {}
+  @override
+  List<Object?> get props => [];
+}
 
-final class EditorInitial extends EditorState {}
+final class EditorInitial extends EditorState {
+  const EditorInitial();
+}
 
-final class EditorLoading extends EditorState {}
+final class EditorLoading extends EditorState {
+  const EditorLoading();
+}
 
 final class EditorLoaded extends EditorState {
   final String noteId;
@@ -17,7 +25,7 @@ final class EditorLoaded extends EditorState {
   final bool isNewNote;
   final bool isDirty;
 
-  EditorLoaded({
+  const EditorLoaded({
     required this.noteId,
     required this.title,
     this.quillDocument,
@@ -49,24 +57,52 @@ final class EditorLoaded extends EditorState {
       isDirty: isDirty ?? this.isDirty,
     );
   }
+
+  @override
+  List<Object?> get props => [
+    noteId,
+    title,
+    quillDocument,
+    isContentLoading,
+    isSaving,
+    activeToolbar,
+    isNewNote,
+    isDirty,
+  ];
 }
 
 final class EditorFailure extends EditorState {
   final ErrorCategory error;
-  EditorFailure(this.error);
+
+  const EditorFailure(this.error);
+
+  @override
+  List<Object?> get props => [error];
 }
 
 final class EditorSaveSuccess extends EditorState {
   final String noteId;
-  EditorSaveSuccess(this.noteId);
+
+  const EditorSaveSuccess(this.noteId);
+
+  @override
+  List<Object?> get props => [noteId];
 }
 
 final class EditorDeleteRequest extends EditorState {
   final String noteId;
-  EditorDeleteRequest(this.noteId);
+
+  const EditorDeleteRequest(this.noteId);
+
+  @override
+  List<Object?> get props => [noteId];
 }
 
 final class EditorDiscarded extends EditorState {
   final String? noteId;
-  EditorDiscarded({this.noteId});
+
+  const EditorDiscarded({this.noteId});
+
+  @override
+  List<Object?> get props => [noteId];
 }
