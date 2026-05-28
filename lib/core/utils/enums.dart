@@ -19,3 +19,5 @@ enum ErrorCategory {
   appAlreadyRunning,
   unknown,
 }
+
+enum EditorToolbar { none, textStyle, menu, options }

@@ -1,6 +1,5 @@
 part of 'editor_bloc.dart';
 
-enum EditorToolbar { none, textStyle, menu, options }
 
 sealed class EditorState {}
 
