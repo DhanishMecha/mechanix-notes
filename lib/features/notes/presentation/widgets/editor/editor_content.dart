@@ -24,7 +24,10 @@ class _EditorContentState extends State<EditorContent> {
   void initState() {
     super.initState();
     _scrollController = ScrollController();
+    initController();
+  }
 
+  void initController() {
     final state = context.read<EditorBloc>().state;
     if (state is EditorLoaded && state.isNewNote) {
       Future.delayed(const Duration(milliseconds: 400), () {

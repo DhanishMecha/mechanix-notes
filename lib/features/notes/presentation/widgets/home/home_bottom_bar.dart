@@ -32,7 +32,9 @@ class HomeBottomBar extends StatelessWidget {
           previous.isSelectionMode != current.isSelectionMode ||
           previous.selectedNotes.length != current.selectedNotes.length,
       builder: (context, state) {
-        if (!state.isSelectionMode) return const SizedBox.shrink();
+        if (!state.isSelectionMode) {
+          return const SizedBox.shrink();
+        }
 
         return Container(
           height: 60,
@@ -43,45 +45,31 @@ class HomeBottomBar extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                IconButton(
-                  padding: const EdgeInsets.all(10),
-                  icon: Image.asset(
-                    NotesIcon.closeIcon,
-                    width: 24,
-                    height: 24,
-                    color: Colors.white,
-                  ),
-                  onPressed: () =>
-                      context.read<NotesBloc>().add(ClearSelection()),
+                _BottomBarIcon(
+                  iconPath: NotesIcon.closeIcon,
+                  color: Colors.white,
+                  onPressed: () {
+                    context.read<NotesBloc>().add(ClearSelection());
+                  },
                 ),
 
-                IconButton(
-                  padding: const EdgeInsets.all(10),
-                  icon: Image.asset(
-                    NotesIcon.selectAllIcon,
-                    width: 24,
-                    height: 24,
-                    color: Colors.white,
-                  ),
-                  onPressed: () =>
-                      context.read<NotesBloc>().add(SelectAllNotes()),
+                _BottomBarIcon(
+                  iconPath: NotesIcon.selectAllIcon,
+                  color: Colors.white,
+                  onPressed: () {
+                    context.read<NotesBloc>().add(SelectAllNotes());
+                  },
                 ),
 
-                IconButton(
-                  padding: const EdgeInsets.all(10),
-                  icon: Image.asset(
-                    NotesIcon.deleteIcon,
-                    width: 24,
-                    height: 24,
-                    color: state.selectedNotes.isNotEmpty
-                        ? Colors.red
-                        : Colors.grey,
-                  ),
+                _BottomBarIcon(
+                  iconPath: NotesIcon.deleteIcon,
+                  color: state.selectedNotes.isNotEmpty
+                      ? Colors.red
+                      : Colors.grey,
                   onPressed: state.selectedNotes.isNotEmpty
-                      ? () => _showDeleteSheet(
-                          context,
-                          state.selectedNotes.length,
-                        )
+                      ? () {
+                          _showDeleteSheet(context, state.selectedNotes.length);
+                        }
                       : null,
                 ),
               ],
@@ -89,6 +77,27 @@ class HomeBottomBar extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class _BottomBarIcon extends StatelessWidget {
+  final String iconPath;
+  final VoidCallback? onPressed;
+  final Color color;
+
+  const _BottomBarIcon({
+    required this.iconPath,
+    required this.onPressed,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      padding: const EdgeInsets.all(10),
+      onPressed: onPressed,
+      icon: Image.asset(iconPath, width: 24, height: 24, color: color),
     );
   }
 }
