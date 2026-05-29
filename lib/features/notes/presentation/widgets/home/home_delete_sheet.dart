@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mechanix_notes/core/utils/colors.dart';
 import 'package:mechanix_notes/core/utils/icons.dart';
 import 'package:mechanix_notes/features/notes/presentation/widgets/editor/editor_button.dart';
 import 'package:mechanix_notes/l10n/notes_localizations.dart';
@@ -16,8 +17,10 @@ class HomeDeleteSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        color: Color(0xFF212121),
-        border: Border(top: BorderSide(color: Color(0xFF2D2D2D), width: 1)),
+        color: NotesColors.searchBarColor,
+        border: Border(
+          top: BorderSide(color: NotesColors.borderColor, width: 1),
+        ),
       ),
       child: SafeArea(
         top: false,
@@ -39,7 +42,7 @@ class HomeDeleteSheet extends StatelessWidget {
                 ),
               ),
 
-              const Divider(color: Color(0xFF2D2D2D)),
+              const Divider(color: NotesColors.borderColor),
 
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -53,11 +56,7 @@ class HomeDeleteSheet extends StatelessWidget {
                       AppLocalizations.of(
                         context,
                       )!.deleteNotePromptTitle(selectedCount),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: Theme.of(context).textTheme.titleMedium,
                     ),
 
                     const SizedBox(height: 12),
@@ -66,10 +65,9 @@ class HomeDeleteSheet extends StatelessWidget {
                       AppLocalizations.of(
                         context,
                       )!.deleteNotePromptSubtitle(selectedCount),
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 16,
-                      ),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodySmall?.copyWith(color: Colors.white70),
                     ),
 
                     const SizedBox(height: 28),
@@ -83,7 +81,8 @@ class HomeDeleteSheet extends StatelessWidget {
                               onPressed: () => Navigator.of(context).pop(),
                               style: FilledButton.styleFrom(
                                 enabledMouseCursor: SystemMouseCursors.click,
-                                backgroundColor: const Color(0xFF3A3A3A),
+                                backgroundColor:
+                                    NotesColors.backgroundFilledColor,
                                 foregroundColor: Colors.white,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(0),
@@ -109,7 +108,7 @@ class HomeDeleteSheet extends StatelessWidget {
                               },
                               style: FilledButton.styleFrom(
                                 enabledMouseCursor: SystemMouseCursors.click,
-                                backgroundColor: const Color(0xFFC0392B),
+                                backgroundColor: NotesColors.deleteButtonColor,
                                 foregroundColor: Colors.white,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(0),

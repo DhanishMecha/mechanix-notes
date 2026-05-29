@@ -123,7 +123,7 @@ class _EditorViewState extends State<EditorView> {
                   const SizedBox(height: 12),
                   Text(
                     localizeError(context, state.error),
-                    style: const TextStyle(color: Colors.white, fontSize: 16),
+                    style: Theme.of(context).textTheme.bodySmall,
                   ),
                   const SizedBox(height: 24),
                   TextButton(
@@ -140,7 +140,7 @@ class _EditorViewState extends State<EditorView> {
                     ),
                     child: Text(
                       AppLocalizations.of(context)!.goBack,
-                      style: const TextStyle(color: Colors.white),
+                      style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ),
                 ],

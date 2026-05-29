@@ -15,9 +15,8 @@ class SearchMessageView extends StatelessWidget {
     return Center(
       child: Text(
         message,
-        style: TextStyle(
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
           color: isError ? Colors.red : Colors.grey,
-          fontSize: 16,
         ),
       ),
     );

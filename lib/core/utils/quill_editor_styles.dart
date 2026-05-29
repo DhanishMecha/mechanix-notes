@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import 'package:mechanix_notes/core/utils/colors.dart';
 
 DefaultStyles quillEditorStyle(BuildContext context) {
   return const DefaultStyles(
@@ -92,7 +93,9 @@ DefaultStyles quillEditorStyle(BuildContext context) {
       VerticalSpacing(8, 8),
       VerticalSpacing(0, 0),
       BoxDecoration(
-        border: Border(left: BorderSide(color: Color(0xFF666666), width: 3)),
+        border: Border(
+          left: BorderSide(color: NotesColors.appTitleColor, width: 3),
+        ),
       ),
     ),
 
@@ -110,7 +113,7 @@ DefaultStyles quillEditorStyle(BuildContext context) {
       VerticalSpacing(0, 0),
 
       BoxDecoration(
-        color: Color(0xFF151515),
+        color: NotesColors.bottomBarBg,
         borderRadius: BorderRadius.all(Radius.circular(0)),
       ),
     ),
@@ -130,9 +133,9 @@ DefaultStyles quillEditorStyle(BuildContext context) {
     ),
 
     link: TextStyle(
-      color: Color(0xFF4A9EFF),
+      color: NotesColors.linkColor,
       decoration: TextDecoration.underline,
-      decorationColor: Color(0xFF4A9EFF),
+      decorationColor: NotesColors.linkColor,
       fontFamily: "Sora",
     ),
     color: Colors.white,

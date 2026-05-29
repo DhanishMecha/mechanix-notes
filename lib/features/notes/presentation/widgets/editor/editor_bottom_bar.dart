@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mechanix_notes/core/utils/colors.dart';
 import 'package:mechanix_notes/core/utils/enums.dart';
 import 'package:mechanix_notes/core/utils/icons.dart';
 import 'package:mechanix_notes/features/notes/bloc/editor/editor_bloc.dart';
@@ -52,7 +53,7 @@ class EditorBottomBar extends StatelessWidget {
 
               Container(
                 height: 60,
-                decoration: const BoxDecoration(color: Color(0xFF151515)),
+                decoration: const BoxDecoration(color: NotesColors.bottomBarBg),
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 8,
@@ -70,7 +71,7 @@ class EditorBottomBar extends StatelessWidget {
                       size: 28,
                       padding: const EdgeInsets.all(8),
                       bgColor: activeToolbar == EditorToolbar.textStyle
-                          ? const Color(0xFF2D2D2D)
+                          ? NotesColors.borderColor
                           : Colors.transparent,
                       asset: NotesIcon.textstyleIcon,
                       onPress: () => _toggle(context, EditorToolbar.textStyle),
@@ -79,7 +80,7 @@ class EditorBottomBar extends StatelessWidget {
                       size: 28,
                       padding: const EdgeInsets.all(8),
                       bgColor: activeToolbar == EditorToolbar.menu
-                          ? const Color(0xFF2D2D2D)
+                          ? NotesColors.borderColor
                           : Colors.transparent,
                       asset: NotesIcon.menuIcon,
                       onPress: () => _toggle(context, EditorToolbar.menu),

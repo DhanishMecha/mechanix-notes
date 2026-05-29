@@ -25,18 +25,14 @@ class HomeTitleBar extends StatelessWidget {
               if (state.isSelectionMode)
                 Text(
                   AppLocalizations.of(context)!.notesSelected(count),
-                  style: const TextStyle(
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: NotesColors.appTitleColor,
-                    fontSize: 20,
                   ),
                 )
               else
                 Text(
                   AppLocalizations.of(context)!.notes,
-                  style: const TextStyle(
-                    color: NotesColors.appTitleColor,
-                    fontSize: 24,
-                  ),
+                  style: Theme.of(context).textTheme.titleLarge,
                 ),
             ],
           );

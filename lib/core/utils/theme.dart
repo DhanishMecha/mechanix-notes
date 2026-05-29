@@ -3,9 +3,7 @@ import 'package:mechanix_notes/core/utils/colors.dart';
 
 class AppTheme {
   static final dark = ThemeData.dark(useMaterial3: true).copyWith(
-    textTheme: ThemeData.dark(
-      useMaterial3: true,
-    ).textTheme.apply(fontFamily: "Sora"),
+    textTheme: _appTextTheme(),
     iconButtonTheme: const IconButtonThemeData(
       style: ButtonStyle(
         mouseCursor: WidgetStatePropertyAll(SystemMouseCursors.click),
@@ -23,9 +21,7 @@ class AppTheme {
   );
 
   static final light = ThemeData.light(useMaterial3: true).copyWith(
-    textTheme: ThemeData.light(
-      useMaterial3: true,
-    ).textTheme.apply(fontFamily: "Sora"),
+    textTheme: _appTextTheme(),
     iconButtonTheme: const IconButtonThemeData(
       style: ButtonStyle(
         mouseCursor: WidgetStatePropertyAll(SystemMouseCursors.click),
@@ -42,3 +38,24 @@ class AppTheme {
     textSelectionTheme: const TextSelectionThemeData(cursorColor: Colors.white),
   );
 }
+
+TextTheme _appTextTheme() => ThemeData.dark(useMaterial3: true).textTheme
+    .apply(fontFamily: "Sora")
+    .copyWith(
+      bodySmall: const TextStyle(color: Colors.white, fontSize: 16),
+      titleLarge: const TextStyle(
+        color: NotesColors.appTitleColor,
+        fontSize: 24,
+      ),
+      titleMedium: const TextStyle(
+        color: Colors.white,
+        fontSize: 20,
+        fontWeight: FontWeight.w600,
+      ),
+      titleSmall: const TextStyle(
+        color: NotesColors.timeLabelColor,
+        fontSize: 18,
+        fontWeight: FontWeight.w600,
+      ),
+      displayMedium: const TextStyle(color: Colors.redAccent, fontSize: 16),
+    );

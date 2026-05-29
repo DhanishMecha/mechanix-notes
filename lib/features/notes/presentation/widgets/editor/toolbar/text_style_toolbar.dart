@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import 'package:mechanix_notes/core/utils/colors.dart';
 import 'package:mechanix_notes/core/utils/icons.dart';
 import 'package:mechanix_notes/features/notes/presentation/widgets/editor/editor_button.dart';
 import 'package:mechanix_notes/features/notes/presentation/widgets/editor/quill_controller_provider.dart';
@@ -41,10 +42,10 @@ class TextStyleToolbar extends StatelessWidget {
     return Container(
       height: 48,
       decoration: const BoxDecoration(
-        color: Color(0xFF212121),
+        color: NotesColors.searchBarColor,
         boxShadow: [
           BoxShadow(
-            color: Color(0x40000000),
+            color: NotesColors.boxShadowColor,
             offset: Offset(0, -4),
             blurRadius: 4,
           ),

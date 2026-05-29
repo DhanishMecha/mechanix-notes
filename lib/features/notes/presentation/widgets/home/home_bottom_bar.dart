@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mechanix_notes/core/utils/colors.dart';
 import 'package:mechanix_notes/core/utils/icons.dart';
 import 'package:mechanix_notes/features/notes/bloc/notes/notes_bloc.dart';
 import 'package:mechanix_notes/features/notes/bloc/notes/notes_event.dart';
@@ -38,7 +39,7 @@ class HomeBottomBar extends StatelessWidget {
 
         return Container(
           height: 60,
-          decoration: const BoxDecoration(color: Color(0xFF151515)),
+          decoration: const BoxDecoration(color: NotesColors.bottomBarBg),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: SafeArea(
             top: false,

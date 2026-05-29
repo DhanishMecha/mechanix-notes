@@ -8,4 +8,8 @@ class NotesColors {
   static const Color appTitleColor = Color(0xFFADADAD);
   static const Color placeholderColor = Color(0xFF636363);
   static const Color searchBarColor = Color(0xFF212121);
+  static const Color backgroundFilledColor = Color(0xFF3A3A3A);
+  static const Color deleteButtonColor = Color(0xFFC0392B);
+  static const Color boxShadowColor = Color(0x40000000);
+  static const Color linkColor = Color(0xFF4A9EFF);
 }

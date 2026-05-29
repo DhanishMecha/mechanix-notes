@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:mechanix_notes/core/utils/colors.dart';
 import 'package:mechanix_notes/core/utils/helper.dart';
 import 'package:mechanix_notes/features/notes/data/models/time_group.dart';
 
@@ -17,11 +16,7 @@ class HomeGroupHeader extends StatelessWidget {
           padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 26.0),
           child: Text(
             getLocalizedLabelForTimeNotes(context, group),
-            style: const TextStyle(
-              color: NotesColors.timeLabelColor,
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-            ),
+            style: Theme.of(context).textTheme.titleSmall,
           ),
         ),
         const SizedBox(height: 10),

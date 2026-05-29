@@ -15,7 +15,7 @@ class HomeErrorView extends StatelessWidget {
         child: Text(
           localizeError(context, error),
           textAlign: TextAlign.center,
-          style: const TextStyle(color: Colors.redAccent, fontSize: 16),
+          style: Theme.of(context).textTheme.displayMedium,
         ),
       ),
     );
