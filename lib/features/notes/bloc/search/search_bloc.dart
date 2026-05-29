@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mechanix_notes/core/utils/app_logger.dart';
+import 'package:mechanix_notes/core/utils/constants.dart';
 import 'package:mechanix_notes/features/notes/bloc/search/search_event.dart';
 import 'package:mechanix_notes/features/notes/bloc/search/search_state.dart';
 import 'package:mechanix_notes/features/notes/data/repository/search_repository.dart';
@@ -18,7 +19,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     Emitter<SearchState> emit,
   ) async {
     final query = event.query.trim();
-    if (query.isEmpty) {
+    if (query.length < Constants.minSearchQueryLength) {
       emit(const SearchState());
       return;
     }
@@ -35,8 +36,8 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     try {
       final filteredNotes = await searchRepository.searchNotes(query);
 
-      final firstPage = filteredNotes.take(SearchState.pageSize).toList();
-      final hasMore = filteredNotes.length > SearchState.pageSize;
+      final firstPage = filteredNotes.take(Constants.pageSize).toList();
+      final hasMore = filteredNotes.length > Constants.pageSize;
 
       AppLogger.i("Found ${filteredNotes.length} matching notes");
 
@@ -69,7 +70,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
       final currentCount = state.results.length;
       final newBatch = state.allFilteredNotes
           .skip(currentCount)
-          .take(SearchState.pageSize)
+          .take(Constants.pageSize)
           .toList();
 
       if (newBatch.isEmpty) {

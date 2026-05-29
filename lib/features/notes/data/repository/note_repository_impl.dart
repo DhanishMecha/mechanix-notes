@@ -1,54 +1,20 @@
-import 'dart:io';
-
 import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
+import 'package:mechanix_notes/core/services/hive_service.dart';
 import 'package:mechanix_notes/core/utils/app_logger.dart';
 import 'package:mechanix_notes/core/utils/constants.dart';
 import 'package:mechanix_notes/features/notes/data/models/note_metadata.dart';
 import 'package:mechanix_notes/features/notes/data/models/note_model.dart';
 import 'package:mechanix_notes/features/notes/data/repository/note_repository.dart';
-import 'package:mechanix_notes/core/exceptions/app_exceptions.dart';
+import 'package:mechanix_notes/core/exceptions/hive_exception.dart';
 
 class NoteRepositoryImpl extends NoteRepository {
   Box<NoteModel> get box => Hive.box<NoteModel>(Constants.tableName);
 
-  Future<void> ensureHiveConnected() async {
-    try {
-      if (!Hive.isBoxOpen(Constants.tableName)) {
-        await initializeHive();
-        await Hive.openBox<NoteModel>(Constants.tableName);
-      }
-    } catch (e) {
-      AppLogger.e('Failed to open Hive box: $e');
-      if (e is FileSystemException && e.message.contains('lock failed')) {
-        throw AppAlreadyRunningException();
-      }
-      rethrow;
-    }
-  }
-
-  Future<void> initializeHive() async {
-    try {
-      final home = Platform.environment['HOME'];
-      // path of hive: /home/{user}/.config/mechanix_notes
-      final baseDir = '$home/.config';
-      final appDir = Directory('$baseDir/mechanix_notes');
-      final exists = await appDir.exists();
-
-      if (!exists) {
-        await appDir.create(recursive: true);
-      }
-
-      Hive.init(appDir.path);
-    } catch (e) {
-      AppLogger.e('Failed to initialize Hive: $e');
-    }
-  }
-
   @override
   Future<List<NoteMetaData>> getAllNotes() async {
     try {
-      await ensureHiveConnected();
+      await HiveService.ensureHiveConnected();
 
       if (box.isEmpty) {
         AppLogger.i("No notes found");
@@ -73,7 +39,7 @@ class NoteRepositoryImpl extends NoteRepository {
       AppLogger.i("Fetched all notes → total: ${sortedNotes.length}");
 
       return sortedNotes;
-    } on AppAlreadyRunningException catch (_) {
+    } on HiveLockedException catch (_) {
       rethrow;
     } catch (e) {
       AppLogger.e('Failed to fetch notes: $e');
@@ -84,7 +50,7 @@ class NoteRepositoryImpl extends NoteRepository {
   @override
   Future<NoteMetaData?> getNoteById(String id) async {
     try {
-      await ensureHiveConnected();
+      await HiveService.ensureHiveConnected();
       final note = box.get(id);
       if (note != null) {
         return NoteMetaData(
@@ -112,7 +78,7 @@ class NoteRepositoryImpl extends NoteRepository {
   @override
   Future<void> deleteNotes(List<String> ids) async {
     try {
-      await ensureHiveConnected();
+      await HiveService.ensureHiveConnected();
       await box.deleteAll(ids);
       AppLogger.i('NoteRepository: deleteNotes(${ids.length}) ✓');
     } catch (e) {

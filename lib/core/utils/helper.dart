@@ -1,4 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_quill/flutter_quill.dart';
+import 'package:mechanix_notes/core/utils/app_logger.dart';
 import 'package:mechanix_notes/features/notes/data/models/time_group.dart';
 import 'package:mechanix_notes/l10n/notes_localizations.dart';
 import 'package:mechanix_notes/core/utils/enums.dart';
@@ -42,5 +46,16 @@ String localizeError(BuildContext context, ErrorCategory error) {
       return AppLocalizations.of(context)!.appAlreadyRunning;
     case ErrorCategory.unknown:
       return AppLocalizations.of(context)!.somethingWentWrong;
+  }
+}
+
+/// Converts Quill JSON string into a Document object.
+Document decodeDocumentInIsolate(String contentJson) {
+  try {
+    final List<dynamic> deltaList = jsonDecode(contentJson) as List<dynamic>;
+    return Document.fromJson(deltaList);
+  } catch (e) {
+    AppLogger.e('Failed to decode document: $e');
+    return Document();
   }
 }

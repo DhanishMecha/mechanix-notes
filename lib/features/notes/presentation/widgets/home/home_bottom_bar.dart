@@ -88,7 +88,7 @@ class _BottomBarIcon extends StatelessWidget {
 
   const _BottomBarIcon({
     required this.iconPath,
-    required this.onPressed,
+    this.onPressed,
     required this.color,
   });
 

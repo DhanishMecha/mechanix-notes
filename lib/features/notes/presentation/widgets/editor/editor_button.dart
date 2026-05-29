@@ -3,7 +3,7 @@ import 'package:mechanix_notes/core/widgets/clickable_region.dart';
 
 class EditorButton extends StatelessWidget {
   final String asset;
-  final VoidCallback? onPress;
+  final VoidCallback onPress;
   final double size;
   final bool isActive;
   final Color bgColor;

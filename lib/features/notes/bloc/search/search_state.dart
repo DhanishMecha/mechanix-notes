@@ -12,8 +12,6 @@ class SearchState extends Equatable {
   final int currentPage;
   final bool isLoadingMore;
 
-  static const int pageSize = 20;
-
   const SearchState({
     this.status = SearchStatus.initial,
     this.results = const [],

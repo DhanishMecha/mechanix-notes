@@ -15,7 +15,6 @@ class NotesState extends Equatable {
   final bool isSelectionMode;
   final List<String> selectedNotes;
 
-  static const int pageSize = 20;
 
   const NotesState({
     this.notes = const [],

@@ -6,6 +6,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:mechanix_notes/core/utils/app_logger.dart';
+import 'package:mechanix_notes/core/utils/constants.dart';
+import 'package:mechanix_notes/core/utils/helper.dart';
 import 'package:mechanix_notes/features/notes/data/models/note_model.dart';
 import 'package:mechanix_notes/features/notes/data/repository/editor_repository.dart';
 import 'package:uuid/uuid.dart';
@@ -50,7 +52,7 @@ class EditorBloc extends Bloc<EditorEvent, EditorState> {
           return;
         }
 
-        final quillDoc = await compute(_decodeDocumentInIsolate, note.content);
+        final quillDoc = await compute(decodeDocumentInIsolate, note.content);
 
         AppLogger.i('EditorBloc: Content ready for ${event.noteId}');
         emit(
@@ -139,8 +141,8 @@ class EditorBloc extends Bloc<EditorEvent, EditorState> {
       emit(current.copyWith(isSaving: true));
 
       final now = DateTime.now();
-      final previewText = event.plainText.length > 40
-          ? event.plainText.trim().substring(0, 40)
+      final previewText = event.plainText.length > Constants.noteTitleMaxLength
+          ? event.plainText.trim().substring(0, Constants.noteTitleMaxLength)
           : event.plainText.trim();
 
       final note = NoteModel(
@@ -192,8 +194,8 @@ class EditorBloc extends Bloc<EditorEvent, EditorState> {
           event.plainText.trim().isEmpty) {
         return;
       }
-      final previewText = event.plainText.length > 40
-          ? event.plainText.trim().substring(0, 40)
+      final previewText = event.plainText.length > Constants.noteTitleMaxLength
+          ? event.plainText.trim().substring(0, Constants.noteTitleMaxLength)
           : event.plainText.trim();
       final now = DateTime.now();
       final note = NoteModel(
@@ -225,21 +227,12 @@ class EditorBloc extends Bloc<EditorEvent, EditorState> {
     }
   }
 
-  // Helpers
+  // Helper
 
   double _estimateHeight(String plainText) {
     const lineHeight = 24.0;
     const charsPerLine = 60;
     final lines = (plainText.length / charsPerLine).ceil().clamp(1, 20);
     return lines * lineHeight + 80;
-  }
-}
-
-Document _decodeDocumentInIsolate(String contentJson) {
-  try {
-    final List<dynamic> deltaList = jsonDecode(contentJson) as List<dynamic>;
-    return Document.fromJson(deltaList);
-  } catch (e) {
-    return Document();
   }
 }

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mechanix_notes/core/utils/constants.dart';
 import 'package:mechanix_notes/features/notes/bloc/editor/editor_bloc.dart';
 import 'package:mechanix_notes/l10n/notes_localizations.dart';
 
@@ -48,7 +49,7 @@ class EditorTitleInputState extends State<EditorTitleInput> {
     return RepaintBoundary(
       child: TextField(
         controller: _titleController,
-        maxLength: 40,
+        maxLength: Constants.noteTitleMaxLength,
         maxLines: 1,
         style: Theme.of(context).textTheme.titleLarge?.copyWith(
           fontWeight: FontWeight.w400,

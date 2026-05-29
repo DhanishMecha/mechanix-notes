@@ -1,13 +1,14 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:mechanix_notes/core/utils/app_logger.dart';
+import 'package:mechanix_notes/core/utils/constants.dart';
 import 'package:mechanix_notes/features/notes/bloc/notes/notes_event.dart';
 import 'package:mechanix_notes/features/notes/bloc/notes/notes_state.dart';
 import 'package:mechanix_notes/features/notes/data/models/note_metadata.dart';
 import 'package:mechanix_notes/features/notes/data/models/time_group.dart';
 import 'package:mechanix_notes/features/notes/data/repository/note_repository.dart';
 import 'package:mechanix_notes/core/utils/enums.dart';
-import 'package:mechanix_notes/core/exceptions/app_exceptions.dart';
+import 'package:mechanix_notes/core/exceptions/hive_exception.dart';
 
 class NotesBloc extends Bloc<NotesEvent, NotesState> {
   final NoteRepository noteRepository;
@@ -30,10 +31,11 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
     AppLogger.i("Loading notes");
 
     try {
+      // TODO: Replace with Objectbox
       final allNotes = await noteRepository.getAllNotes();
-      final firstPage = allNotes.take(NotesState.pageSize).toList();
+      final firstPage = allNotes.take(Constants.pageSize).toList();
       final flattened = _buildFlattenedNotes(firstPage);
-      final hasMore = allNotes.length > NotesState.pageSize;
+      final hasMore = allNotes.length > Constants.pageSize;
       AppLogger.i(
         "Notes loaded — ${allNotes.length} total, showing ${firstPage.length}",
       );
@@ -46,7 +48,7 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
           currentPage: 0,
         ),
       );
-    } on AppAlreadyRunningException catch (e) {
+    } on HiveLockedException catch (e) {
       AppLogger.e("App already running: $e");
       emit(
         state.copyWith(
@@ -78,7 +80,7 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
 
       final newBatch = state.notes
           .skip(currentCount)
-          .take(NotesState.pageSize)
+          .take(Constants.pageSize)
           .toList();
 
       if (newBatch.isEmpty) {
@@ -97,7 +99,7 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
         state.copyWith(
           groupedNotes: [...state.groupedNotes, ...newEntries],
           isLoadingMore: false,
-          hasMore: newBatch.length == NotesState.pageSize,
+          hasMore: newBatch.length == Constants.pageSize,
           currentPage: state.currentPage + 1,
         ),
       );
@@ -128,6 +130,7 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
     return flattened;
   }
 
+  /// Reloads the edited note
   Future<void> _refreshNote(RefreshNote event, Emitter<NotesState> emit) async {
     try {
       AppLogger.i("Refreshing note ${event.noteId}");
@@ -145,9 +148,9 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
       ];
 
       // Reset pagination to first page only
-      final firstPage = updatedNotes.take(NotesState.pageSize).toList();
+      final firstPage = updatedNotes.take(Constants.pageSize).toList();
       final flattened = _buildFlattenedNotes(firstPage);
-      final hasMore = updatedNotes.length > NotesState.pageSize;
+      final hasMore = updatedNotes.length > Constants.pageSize;
 
       AppLogger.i("Refreshing note completed ");
 
@@ -182,9 +185,9 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
           .where((n) => !selectedNotes.contains(n.id))
           .toList();
 
-      final firstPage = updatedNotes.take(NotesState.pageSize).toList();
+      final firstPage = updatedNotes.take(Constants.pageSize).toList();
       final flattened = _buildFlattenedNotes(firstPage);
-      final hasMore = updatedNotes.length > NotesState.pageSize;
+      final hasMore = updatedNotes.length > Constants.pageSize;
 
       AppLogger.i("Notes deleted — ${updatedNotes.length} notes remaining");
 
