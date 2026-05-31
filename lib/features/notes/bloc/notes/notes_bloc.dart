@@ -134,7 +134,7 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
   Future<void> _refreshNote(RefreshNote event, Emitter<NotesState> emit) async {
     try {
       AppLogger.i("Refreshing note ${event.noteId}");
-      final updatedNote = await noteRepository.getNoteById(event.noteId);
+      final updatedNote = await noteRepository.getNoteMetaData(event.noteId);
       if (updatedNote == null) return;
       final group = _getTimeGroupForNote(updatedNote);
 

@@ -11,10 +11,13 @@ import 'package:mechanix_notes/core/exceptions/hive_exception.dart';
 class NoteRepositoryImpl extends NoteRepository {
   Box<NoteModel> get box => Hive.box<NoteModel>(Constants.tableName);
 
+  /// Overridable hook — test doubles stub this out to skip real Hive I/O.
+  Future<void> ensureHiveConnected() => HiveService.ensureHiveConnected();
+
   @override
   Future<List<NoteMetaData>> getAllNotes() async {
     try {
-      await HiveService.ensureHiveConnected();
+      await ensureHiveConnected();
 
       if (box.isEmpty) {
         AppLogger.i("No notes found");
@@ -48,9 +51,9 @@ class NoteRepositoryImpl extends NoteRepository {
   }
 
   @override
-  Future<NoteMetaData?> getNoteById(String id) async {
+  Future<NoteMetaData?> getNoteMetaData(String id) async {
     try {
-      await HiveService.ensureHiveConnected();
+      await ensureHiveConnected();
       final note = box.get(id);
       if (note != null) {
         return NoteMetaData(
@@ -78,11 +81,87 @@ class NoteRepositoryImpl extends NoteRepository {
   @override
   Future<void> deleteNotes(List<String> ids) async {
     try {
-      await HiveService.ensureHiveConnected();
+      await ensureHiveConnected();
       await box.deleteAll(ids);
       AppLogger.i('NoteRepository: deleteNotes(${ids.length}) ✓');
     } catch (e) {
       AppLogger.e('NoteRepository: deleteNotes failed: $e');
+    }
+  }
+
+  @override
+  Future<NoteModel?> getNoteById(String id) async {
+    try {
+      await ensureHiveConnected();
+
+      final note = box.values.cast<NoteModel?>().firstWhere(
+        (n) => n?.id == id,
+        orElse: () => null,
+      );
+
+      AppLogger.i(
+        'NoteRepository: getNoteById($id) → ${note == null ? 'not found' : 'found'}',
+      );
+      return note;
+    } catch (e) {
+      AppLogger.e('NoteRepository: getNoteById failed: $e');
+      return null;
+    }
+  }
+
+  @override
+  Future<void> upsertNote(NoteModel note) async {
+    try {
+      await ensureHiveConnected();
+      await box.put(note.id, note);
+      AppLogger.i(
+        'NoteRepository: upsertNote(${note.id}) ${note.updatedAt} ${note.title} ✓',
+      );
+    } catch (e) {
+      AppLogger.e('NoteRepository: upsertNote failed: $e');
+    }
+  }
+
+  @override
+  Future<List<NoteMetaData>> searchNotes(String query) async {
+    try {
+      await ensureHiveConnected();
+
+      if (box.isEmpty) {
+        return [];
+      }
+
+      final queryLower = query.toLowerCase();
+
+      final matchingNotes = box.values
+          .where((note) {
+            final title = note.title.toLowerCase();
+            final preview = note.previewText.toLowerCase();
+            return title.contains(queryLower) || preview.contains(queryLower);
+          })
+          .map((note) {
+            return NoteMetaData(
+              id: note.id,
+              height: note.height,
+              title: note.title,
+              createdAt: note.createdAt,
+              updatedAt: note.updatedAt,
+              previewText: note.previewText,
+            );
+          })
+          .toList();
+
+      // Sort desc by updatedAt
+      matchingNotes.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+
+      AppLogger.i("Found ${matchingNotes.length} matching notes in repository");
+
+      return matchingNotes;
+    } on HiveLockedException catch (_) {
+      rethrow;
+    } catch (e) {
+      AppLogger.e('Failed to search notes: $e');
+      return [];
     }
   }
 }

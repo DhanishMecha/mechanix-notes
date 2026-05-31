@@ -10,10 +10,6 @@ import 'package:mechanix_notes/features/notes/bloc/notes/notes_bloc.dart';
 import 'package:mechanix_notes/features/notes/data/models/note_model.dart';
 import 'package:mechanix_notes/features/notes/data/repository/note_repository.dart';
 import 'package:mechanix_notes/features/notes/data/repository/note_repository_impl.dart';
-import 'package:mechanix_notes/features/notes/data/repository/editor_repository.dart';
-import 'package:mechanix_notes/features/notes/data/repository/editor_repository_impl.dart';
-import 'package:mechanix_notes/features/notes/data/repository/search_repository.dart';
-import 'package:mechanix_notes/features/notes/data/repository/search_repository_impl.dart';
 import 'package:mechanix_notes/features/notes/presentation/screens/editor.dart';
 import 'package:mechanix_notes/features/notes/presentation/screens/home.dart';
 import 'package:mechanix_notes/features/notes/presentation/screens/search.dart';
@@ -29,12 +25,6 @@ void main() {
     MultiRepositoryProvider(
       providers: [
         RepositoryProvider<NoteRepository>(create: (_) => NoteRepositoryImpl()),
-        RepositoryProvider<EditorRepository>(
-          create: (_) => EditorRepositoryImpl(),
-        ),
-        RepositoryProvider<SearchRepository>(
-          create: (_) => SearchRepositoryImpl(),
-        ),
       ],
       child: MultiBlocProvider(
         providers: [

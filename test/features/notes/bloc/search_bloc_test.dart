@@ -1,13 +1,14 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mechanix_notes/core/utils/constants.dart';
 import 'package:mechanix_notes/features/notes/bloc/search/search_bloc.dart';
 import 'package:mechanix_notes/features/notes/bloc/search/search_event.dart';
 import 'package:mechanix_notes/features/notes/bloc/search/search_state.dart';
 import 'package:mechanix_notes/features/notes/data/models/note_metadata.dart';
-import 'package:mechanix_notes/features/notes/data/repository/search_repository.dart';
+import 'package:mechanix_notes/features/notes/data/repository/note_repository.dart';
 import 'package:mocktail/mocktail.dart';
 
-class MockSearchRepository extends Mock implements SearchRepository {}
+class MockNoteRepository extends Mock implements NoteRepository {}
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -57,13 +58,13 @@ Matcher stateMatching({
 // ---------------------------------------------------------------------------
 
 void main() {
-  late MockSearchRepository mockRepo;
+  late MockNoteRepository mockRepo;
 
   setUp(() {
-    mockRepo = MockSearchRepository();
+    mockRepo = MockNoteRepository();
   });
 
-  SearchBloc buildBloc() => SearchBloc(searchRepository: mockRepo);
+  SearchBloc buildBloc() => SearchBloc(noteRepository: mockRepo);
 
   // ── Constructor ──────────────────────────────────────────────────────────
 
@@ -229,7 +230,7 @@ void main() {
     blocTest<SearchBloc, SearchState>(
       'sets hasMore=false when results equal pageSize exactly',
       build: () {
-        final notes = buildNoteList(SearchState.pageSize);
+        final notes = buildNoteList(Constants.pageSize);
         when(
           () => mockRepo.searchNotes('exact'),
         ).thenAnswer((_) async => notes);
@@ -240,8 +241,8 @@ void main() {
         isA<SearchState>(),
         stateMatching(
           status: SearchStatus.success,
-          resultsLength: SearchState.pageSize,
-          allFilteredLength: SearchState.pageSize,
+          resultsLength: Constants.pageSize,
+          allFilteredLength: Constants.pageSize,
           hasMore: false,
         ),
       ],
@@ -250,7 +251,7 @@ void main() {
     blocTest<SearchBloc, SearchState>(
       'sets hasMore=true when results are exactly pageSize + 1',
       build: () {
-        final notes = buildNoteList(SearchState.pageSize + 1);
+        final notes = buildNoteList(Constants.pageSize + 1);
         when(
           () => mockRepo.searchNotes('plusone'),
         ).thenAnswer((_) async => notes);
@@ -261,8 +262,8 @@ void main() {
         isA<SearchState>(),
         stateMatching(
           status: SearchStatus.success,
-          resultsLength: SearchState.pageSize,
-          allFilteredLength: SearchState.pageSize + 1,
+          resultsLength: Constants.pageSize,
+          allFilteredLength: Constants.pageSize + 1,
           hasMore: true,
         ),
       ],
@@ -271,17 +272,17 @@ void main() {
     blocTest<SearchBloc, SearchState>(
       'sets hasMore=true when total results exceed pageSize',
       build: () {
-        final notes = buildNoteList(SearchState.pageSize + 5);
-        when(() => mockRepo.searchNotes('q')).thenAnswer((_) async => notes);
+        final notes = buildNoteList(Constants.pageSize + 5);
+        when(() => mockRepo.searchNotes('query')).thenAnswer((_) async => notes);
         return buildBloc();
       },
-      act: (bloc) => bloc.add(SearchQueryChanged(query: 'q')),
+      act: (bloc) => bloc.add(SearchQueryChanged(query: 'query')),
       expect: () => [
         isA<SearchState>(),
         stateMatching(
           status: SearchStatus.success,
-          resultsLength: SearchState.pageSize,
-          allFilteredLength: SearchState.pageSize + 5,
+          resultsLength: Constants.pageSize,
+          allFilteredLength: Constants.pageSize + 5,
           hasMore: true,
         ),
       ],
@@ -290,7 +291,7 @@ void main() {
     blocTest<SearchBloc, SearchState>(
       'first page contains the first pageSize notes from repository',
       build: () {
-        final notes = buildNoteList(SearchState.pageSize + 2);
+        final notes = buildNoteList(Constants.pageSize + 2);
         when(() => mockRepo.searchNotes('ids')).thenAnswer((_) async => notes);
         return buildBloc();
       },
@@ -298,8 +299,8 @@ void main() {
       verify: (bloc) {
         final ids = bloc.state.results.map((n) => n.id).toList();
         expect(ids.first, 'note_0');
-        expect(ids.last, 'note_${SearchState.pageSize - 1}');
-        expect(ids.length, SearchState.pageSize);
+        expect(ids.last, 'note_${Constants.pageSize - 1}');
+        expect(ids.length, Constants.pageSize);
       },
     );
 
@@ -364,18 +365,18 @@ void main() {
       'recovers to success after a previous failure',
       build: () {
         when(
-          () => mockRepo.searchNotes('ok'),
+          () => mockRepo.searchNotes('okay'),
         ).thenAnswer((_) async => buildNoteList(2));
         return buildBloc();
       },
       seed: () =>
           const SearchState(status: SearchStatus.failure, query: 'fail'),
-      act: (bloc) => bloc.add(SearchQueryChanged(query: 'ok')),
+      act: (bloc) => bloc.add(SearchQueryChanged(query: 'okay')),
       expect: () => [
-        stateMatching(status: SearchStatus.loading, query: 'ok'),
+        stateMatching(status: SearchStatus.loading, query: 'okay'),
         stateMatching(
           status: SearchStatus.success,
-          query: 'ok',
+          query: 'okay',
           resultsLength: 2,
         ),
       ],
@@ -384,12 +385,12 @@ void main() {
     blocTest<SearchBloc, SearchState>(
       'resets isLoadingMore on a fresh search',
       build: () {
-        when(() => mockRepo.searchNotes('q')).thenAnswer((_) async => []);
+        when(() => mockRepo.searchNotes('query')).thenAnswer((_) async => []);
         return buildBloc();
       },
       seed: () =>
           const SearchState(status: SearchStatus.success, isLoadingMore: true),
-      act: (bloc) => bloc.add(SearchQueryChanged(query: 'q')),
+      act: (bloc) => bloc.add(SearchQueryChanged(query: 'query')),
       expect: () => [
         stateMatching(status: SearchStatus.loading, isLoadingMore: false),
         stateMatching(status: SearchStatus.success, isLoadingMore: false),
@@ -490,11 +491,11 @@ void main() {
       'emits isLoadingMore true then false while appending',
       build: buildBloc,
       seed: () {
-        final all = buildNoteList(SearchState.pageSize + 5);
+        final all = buildNoteList(Constants.pageSize + 5);
         return SearchState(
           status: SearchStatus.success,
-          query: 'q',
-          results: all.take(SearchState.pageSize).toList(),
+          query: 'query',
+          results: all.take(Constants.pageSize).toList(),
           allFilteredNotes: all,
           hasMore: true,
         );
@@ -504,7 +505,7 @@ void main() {
         stateMatching(isLoadingMore: true),
         stateMatching(
           isLoadingMore: false,
-          resultsLength: SearchState.pageSize + 5,
+          resultsLength: Constants.pageSize + 5,
           currentPage: 1,
           hasMore: false,
         ),
@@ -515,11 +516,11 @@ void main() {
       'appends the correct next batch of note ids',
       build: buildBloc,
       seed: () {
-        final all = buildNoteList(SearchState.pageSize + 3);
+        final all = buildNoteList(Constants.pageSize + 3);
         return SearchState(
           status: SearchStatus.success,
-          query: 'q',
-          results: all.take(SearchState.pageSize).toList(),
+          query: 'query',
+          results: all.take(Constants.pageSize).toList(),
           allFilteredNotes: all,
           hasMore: true,
         );
@@ -527,8 +528,8 @@ void main() {
       act: (bloc) => bloc.add(LoadMoreSearchResults()),
       verify: (bloc) {
         final ids = bloc.state.results.map((n) => n.id).toList();
-        expect(ids[SearchState.pageSize], 'note_${SearchState.pageSize}');
-        expect(ids.last, 'note_${SearchState.pageSize + 2}');
+        expect(ids[Constants.pageSize], 'note_${Constants.pageSize}');
+        expect(ids.last, 'note_${Constants.pageSize + 2}');
         expect(ids.first, 'note_0');
       },
     );
@@ -537,18 +538,18 @@ void main() {
       'sets hasMore=false when last batch is smaller than pageSize',
       build: buildBloc,
       seed: () {
-        final all = buildNoteList(SearchState.pageSize + 3);
+        final all = buildNoteList(Constants.pageSize + 3);
         return SearchState(
           status: SearchStatus.success,
-          query: 'q',
-          results: all.take(SearchState.pageSize).toList(),
+          query: 'query',
+          results: all.take(Constants.pageSize).toList(),
           allFilteredNotes: all,
           hasMore: true,
         );
       },
       act: (bloc) => bloc.add(LoadMoreSearchResults()),
       verify: (bloc) {
-        expect(bloc.state.results.length, SearchState.pageSize + 3);
+        expect(bloc.state.results.length, Constants.pageSize + 3);
         expect(bloc.state.hasMore, isFalse);
       },
     );
@@ -557,11 +558,11 @@ void main() {
       'keeps hasMore=true when another full page remains',
       build: buildBloc,
       seed: () {
-        final all = buildNoteList(SearchState.pageSize * 3);
+        final all = buildNoteList(Constants.pageSize * 3);
         return SearchState(
           status: SearchStatus.success,
-          query: 'q',
-          results: all.take(SearchState.pageSize).toList(),
+          query: 'query',
+          results: all.take(Constants.pageSize).toList(),
           allFilteredNotes: all,
           hasMore: true,
         );
@@ -570,7 +571,7 @@ void main() {
       expect: () => [
         isA<SearchState>(),
         stateMatching(
-          resultsLength: SearchState.pageSize * 2,
+          resultsLength: Constants.pageSize * 2,
           currentPage: 1,
           hasMore: true,
         ),
@@ -581,11 +582,11 @@ void main() {
       'loads all pages when LoadMoreSearchResults is dispatched repeatedly',
       build: buildBloc,
       seed: () {
-        final all = buildNoteList(SearchState.pageSize * 3);
+        final all = buildNoteList(Constants.pageSize * 3);
         return SearchState(
           status: SearchStatus.success,
-          query: 'q',
-          results: all.take(SearchState.pageSize).toList(),
+          query: 'query',
+          results: all.take(Constants.pageSize).toList(),
           allFilteredNotes: all,
           hasMore: true,
         );
@@ -596,7 +597,7 @@ void main() {
         bloc.add(LoadMoreSearchResults());
       },
       verify: (bloc) {
-        expect(bloc.state.results.length, SearchState.pageSize * 3);
+        expect(bloc.state.results.length, Constants.pageSize * 3);
         expect(bloc.state.currentPage, 2);
         expect(bloc.state.hasMore, isFalse);
         expect(bloc.state.isLoadingMore, isFalse);
@@ -607,20 +608,20 @@ void main() {
       'handles pageSize + 1 notes across two load-more dispatches',
       build: buildBloc,
       seed: () {
-        final all = buildNoteList(SearchState.pageSize + 1);
+        final all = buildNoteList(Constants.pageSize + 1);
         return SearchState(
           status: SearchStatus.success,
-          query: 'q',
-          results: all.take(SearchState.pageSize).toList(),
+          query: 'query',
+          results: all.take(Constants.pageSize).toList(),
           allFilteredNotes: all,
           hasMore: true,
         );
       },
       act: (bloc) => bloc.add(LoadMoreSearchResults()),
       verify: (bloc) {
-        expect(bloc.state.results.length, SearchState.pageSize + 1);
+        expect(bloc.state.results.length, Constants.pageSize + 1);
         expect(bloc.state.hasMore, isFalse);
-        expect(bloc.state.results.last.id, 'note_${SearchState.pageSize}');
+        expect(bloc.state.results.last.id, 'note_${Constants.pageSize}');
       },
     );
   });
@@ -632,10 +633,10 @@ void main() {
       'sets hasMore=false when newBatch is empty despite hasMore being true',
       build: buildBloc,
       seed: () {
-        final all = buildNoteList(SearchState.pageSize);
+        final all = buildNoteList(Constants.pageSize);
         return SearchState(
           status: SearchStatus.success,
-          query: 'q',
+          query: 'query',
           results: all,
           allFilteredNotes: all,
           hasMore: true,
@@ -647,7 +648,7 @@ void main() {
         stateMatching(
           isLoadingMore: false,
           hasMore: false,
-          resultsLength: SearchState.pageSize,
+          resultsLength: Constants.pageSize,
         ),
       ],
     );
@@ -668,7 +669,7 @@ void main() {
       build: buildBloc,
       seed: () => SearchState(
         status: SearchStatus.success,
-        query: 'q',
+        query: 'query',
         results: buildNoteList(3),
         allFilteredNotes: buildNoteList(3),
         hasMore: false,
@@ -682,9 +683,9 @@ void main() {
       build: buildBloc,
       seed: () => SearchState(
         status: SearchStatus.success,
-        query: 'q',
-        results: buildNoteList(SearchState.pageSize + 5),
-        allFilteredNotes: buildNoteList(SearchState.pageSize + 5),
+        query: 'query',
+        results: buildNoteList(Constants.pageSize + 5),
+        allFilteredNotes: buildNoteList(Constants.pageSize + 5),
         hasMore: true,
         isLoadingMore: true,
       ),
@@ -696,10 +697,10 @@ void main() {
       'does nothing after all results are already loaded',
       build: buildBloc,
       seed: () {
-        final all = buildNoteList(SearchState.pageSize + 2);
+        final all = buildNoteList(Constants.pageSize + 2);
         return SearchState(
           status: SearchStatus.success,
-          query: 'q',
+          query: 'query',
           results: all,
           allFilteredNotes: all,
           hasMore: false,
@@ -751,7 +752,7 @@ void main() {
       build: buildBloc,
       seed: () => SearchState(
         status: SearchStatus.success,
-        query: 'q',
+        query: 'query',
         results: buildNoteList(25),
         allFilteredNotes: buildNoteList(25),
         hasMore: true,
@@ -781,7 +782,7 @@ void main() {
     blocTest<SearchBloc, SearchState>(
       'search → load more → clear returns to initial',
       build: () {
-        final all = buildNoteList(SearchState.pageSize + 2);
+        final all = buildNoteList(Constants.pageSize + 2);
         when(() => mockRepo.searchNotes('flow')).thenAnswer((_) async => all);
         return buildBloc();
       },
@@ -803,12 +804,12 @@ void main() {
       'search → clear → empty query keeps initial state',
       build: () {
         when(
-          () => mockRepo.searchNotes('a'),
+          () => mockRepo.searchNotes('abc'),
         ).thenAnswer((_) async => buildNoteList(1));
         return buildBloc();
       },
       act: (bloc) async {
-        bloc.add(SearchQueryChanged(query: 'a'));
+        bloc.add(SearchQueryChanged(query: 'abc'));
         await bloc.stream.firstWhere((s) => s.status == SearchStatus.success);
         bloc.add(ClearSearch());
         bloc.add(SearchQueryChanged(query: ''));
@@ -823,7 +824,7 @@ void main() {
 
   group('SearchState', () {
     test('pageSize constant is 20', () {
-      expect(SearchState.pageSize, 20);
+      expect(Constants.pageSize, 20);
     });
 
     test('default constructor values', () {
@@ -854,7 +855,7 @@ void main() {
       expect(original.copyWith(allFilteredNotes: [note]).allFilteredNotes, [
         note,
       ]);
-      expect(original.copyWith(query: 'q').query, 'q');
+      expect(original.copyWith(query: 'query').query, 'query');
       expect(original.copyWith(hasMore: true).hasMore, isTrue);
       expect(original.copyWith(currentPage: 2).currentPage, 2);
       expect(original.copyWith(isLoadingMore: true).isLoadingMore, isTrue);
@@ -874,8 +875,8 @@ void main() {
     });
 
     test('two states with same values are equal (Equatable)', () {
-      const a = SearchState(status: SearchStatus.success, query: 'q');
-      const b = SearchState(status: SearchStatus.success, query: 'q');
+      const a = SearchState(status: SearchStatus.success, query: 'query');
+      const b = SearchState(status: SearchStatus.success, query: 'query');
       expect(a, equals(b));
     });
 
@@ -898,7 +899,7 @@ void main() {
     });
 
     test('states differ when query differs', () {
-      const a = SearchState(query: 'a');
+      const a = SearchState(query: 'abc');
       const b = SearchState(query: 'b');
       expect(a, isNot(equals(b)));
     });
@@ -927,7 +928,7 @@ void main() {
         status: SearchStatus.success,
         results: [note],
         allFilteredNotes: [note],
-        query: 'q',
+        query: 'query',
         hasMore: true,
         currentPage: 1,
         isLoadingMore: true,

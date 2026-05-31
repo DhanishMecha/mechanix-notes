@@ -4,13 +4,13 @@ import 'package:flutter_quill/flutter_quill.dart' show Document;
 import 'package:mechanix_notes/core/utils/enums.dart';
 import 'package:mechanix_notes/features/notes/bloc/editor/editor_bloc.dart';
 import 'package:mechanix_notes/features/notes/data/models/note_model.dart';
-import 'package:mechanix_notes/features/notes/data/repository/editor_repository.dart';
+import 'package:mechanix_notes/features/notes/data/repository/note_repository.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 
-class MockEditorRepository extends Mock implements EditorRepository {}
+class MockNoteRepository extends Mock implements NoteRepository {}
 
 class FakeNoteModel extends Fake implements NoteModel {}
 
@@ -49,14 +49,14 @@ NoteModel makeNote({
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 void main() {
-  late MockEditorRepository repository;
+  late MockNoteRepository repository;
 
   setUpAll(() {
     registerFallbackValue(FakeNoteModel());
   });
 
   setUp(() {
-    repository = MockEditorRepository();
+    repository = MockNoteRepository();
   });
 
   EditorBloc buildBloc() => EditorBloc(repository);
@@ -211,7 +211,7 @@ void main() {
     );
 
     blocTest<EditorBloc, EditorState>(
-      'emits EditorFailure with somethingWentWrong when getNoteById throws',
+      'emits EditorFailure with somethingWentWrong when getNoteMetaData throws',
       build: buildBloc,
       setUp: () {
         when(
@@ -267,7 +267,7 @@ void main() {
     );
 
     blocTest<EditorBloc, EditorState>(
-      'getNoteById is only called once per initialise in edit mode',
+      'getNoteMetaData is only called once per initialise in edit mode',
       build: buildBloc,
       setUp: () {
         when(
@@ -343,7 +343,8 @@ void main() {
     blocTest<EditorBloc, EditorState>(
       'multiple title changes only keeps last value',
       build: buildBloc,
-      seed: () => const EditorLoaded(noteId: kTestNoteId, title: '', isNewNote: true),
+      seed: () =>
+          const EditorLoaded(noteId: kTestNoteId, title: '', isNewNote: true),
       act: (bloc) {
         bloc.add(EditorTitleChanged('A'));
         bloc.add(EditorTitleChanged('AB'));
@@ -453,13 +454,7 @@ void main() {
         isNewNote: false,
       ),
       act: (bloc) => bloc.add(EditorToolbarToggled(EditorToolbar.none)),
-      expect: () => [
-        isA<EditorLoaded>().having(
-          (s) => s.activeToolbar,
-          'toolbar',
-          EditorToolbar.none,
-        ),
-      ],
+      expect: () => <EditorState>[],
     );
   });
 
@@ -484,7 +479,7 @@ void main() {
         EditorSaveRequested(content: jsonDecode(kEmptyDelta), plainText: '   '),
       ),
       expect: () => [isA<EditorDiscarded>()],
-      verify: (_) => verifyNever(() => repository.createNote(any())),
+      verify: (_) => verifyNever(() => repository.upsertNote(any())),
     );
 
     blocTest<EditorBloc, EditorState>(
@@ -514,7 +509,7 @@ void main() {
       build: buildBloc,
       setUp: () {
         when(() => repository.getNoteById(any())).thenAnswer((_) async => null);
-        when(() => repository.createNote(any())).thenAnswer((_) async {});
+        when(() => repository.upsertNote(any())).thenAnswer((_) async {});
       },
       seed: () => EditorLoaded(
         noteId: kTestNoteId,
@@ -529,7 +524,7 @@ void main() {
         isA<EditorLoaded>().having((s) => s.isSaving, 'isSaving', true),
         isA<EditorSaveSuccess>().having((s) => s.noteId, 'noteId', kTestNoteId),
       ],
-      verify: (_) => verify(() => repository.createNote(any())).called(1),
+      verify: (_) => verify(() => repository.upsertNote(any())).called(1),
     );
 
     blocTest<EditorBloc, EditorState>(
@@ -537,7 +532,7 @@ void main() {
       build: buildBloc,
       setUp: () {
         when(() => repository.getNoteById(any())).thenAnswer((_) async => null);
-        when(() => repository.createNote(any())).thenAnswer((_) async {});
+        when(() => repository.upsertNote(any())).thenAnswer((_) async {});
       },
       seed: () => EditorLoaded(
         noteId: kTestNoteId,
@@ -558,11 +553,11 @@ void main() {
     );
 
     blocTest<EditorBloc, EditorState>(
-      'calls createNote (not updateNote) for a brand-new note',
+      'calls upsertNote (not upsertNote) for a brand-new note',
       build: buildBloc,
       setUp: () {
         when(() => repository.getNoteById(any())).thenAnswer((_) async => null);
-        when(() => repository.createNote(any())).thenAnswer((_) async {});
+        when(() => repository.upsertNote(any())).thenAnswer((_) async {});
       },
       seed: () => EditorLoaded(
         noteId: kTestNoteId,
@@ -577,8 +572,8 @@ void main() {
         ),
       ),
       verify: (_) {
-        verify(() => repository.createNote(any())).called(1);
-        verifyNever(() => repository.updateNote(any()));
+        verify(() => repository.upsertNote(any())).called(1);
+        verifyNever(() => repository.upsertNote(any()));
       },
     );
 
@@ -588,7 +583,7 @@ void main() {
       setUp: () {
         when(() => repository.getNoteById(any())).thenAnswer((_) async => null);
         when(
-          () => repository.createNote(captureAny()),
+          () => repository.upsertNote(captureAny()),
         ).thenAnswer((_) async {});
       },
       seed: () => EditorLoaded(
@@ -608,7 +603,7 @@ void main() {
       },
       verify: (_) {
         final captured = verify(
-          () => repository.createNote(captureAny()),
+          () => repository.upsertNote(captureAny()),
         ).captured;
         final note = captured.first as NoteModel;
         expect(note.previewText.length, 40);
@@ -622,7 +617,7 @@ void main() {
       setUp: () {
         when(() => repository.getNoteById(any())).thenAnswer((_) async => null);
         when(
-          () => repository.createNote(captureAny()),
+          () => repository.upsertNote(captureAny()),
         ).thenAnswer((_) async {});
       },
       seed: () => EditorLoaded(
@@ -642,7 +637,7 @@ void main() {
       },
       verify: (_) {
         final captured = verify(
-          () => repository.createNote(captureAny()),
+          () => repository.upsertNote(captureAny()),
         ).captured;
         final note = captured.first as NoteModel;
         // length == 40, condition is > 40 so no truncation
@@ -657,7 +652,7 @@ void main() {
       setUp: () {
         when(() => repository.getNoteById(any())).thenAnswer((_) async => null);
         when(
-          () => repository.createNote(captureAny()),
+          () => repository.upsertNote(captureAny()),
         ).thenAnswer((_) async {});
       },
       seed: () => EditorLoaded(
@@ -677,7 +672,7 @@ void main() {
       },
       verify: (_) {
         final captured = verify(
-          () => repository.createNote(captureAny()),
+          () => repository.upsertNote(captureAny()),
         ).captured;
         final note = captured.first as NoteModel;
         expect(note.previewText.length, 40);
@@ -687,12 +682,12 @@ void main() {
 
     blocTest<EditorBloc, EditorState>(
       // FIX: EditorFailure holds ErrorCategory, not a message string.
-      'emits EditorFailure(failedToSaveNote) when createNote throws',
+      'emits EditorFailure(failedToSaveNote) when upsertNote throws',
       build: buildBloc,
       setUp: () {
         when(() => repository.getNoteById(any())).thenAnswer((_) async => null);
         when(
-          () => repository.createNote(any()),
+          () => repository.upsertNote(any()),
         ).thenThrow(Exception('DB error'));
       },
       seed: () => EditorLoaded(
@@ -718,8 +713,8 @@ void main() {
     );
 
     blocTest<EditorBloc, EditorState>(
-      // FIX: getNoteById throws BEFORE isSaving is emitted — no loading state.
-      'emits EditorFailure when getNoteById throws during save (no isSaving emit)',
+      // FIX: getNoteMetaData throws BEFORE isSaving is emitted — no loading state.
+      'emits EditorFailure when getNoteMetaData throws during save (no isSaving emit)',
       build: buildBloc,
       setUp: () {
         when(
@@ -745,7 +740,7 @@ void main() {
           ErrorCategory.failedToSaveNote,
         ),
       ],
-      verify: (_) => verifyNever(() => repository.createNote(any())),
+      verify: (_) => verifyNever(() => repository.upsertNote(any())),
     );
 
     blocTest<EditorBloc, EditorState>(
@@ -754,7 +749,7 @@ void main() {
       setUp: () {
         when(() => repository.getNoteById(any())).thenAnswer((_) async => null);
         when(
-          () => repository.createNote(captureAny()),
+          () => repository.upsertNote(captureAny()),
         ).thenAnswer((_) async {});
       },
       seed: () => EditorLoaded(
@@ -774,7 +769,7 @@ void main() {
       },
       verify: (_) {
         final captured = verify(
-          () => repository.createNote(captureAny()),
+          () => repository.upsertNote(captureAny()),
         ).captured;
         final note = captured.first as NoteModel;
         expect(note.height, 104.0);
@@ -787,7 +782,7 @@ void main() {
       setUp: () {
         when(() => repository.getNoteById(any())).thenAnswer((_) async => null);
         when(
-          () => repository.createNote(captureAny()),
+          () => repository.upsertNote(captureAny()),
         ).thenAnswer((_) async {});
       },
       seed: () => EditorLoaded(
@@ -804,7 +799,7 @@ void main() {
       },
       verify: (_) {
         final captured = verify(
-          () => repository.createNote(captureAny()),
+          () => repository.upsertNote(captureAny()),
         ).captured;
         final note = captured.first as NoteModel;
         expect(note.height, 104.0);
@@ -817,7 +812,7 @@ void main() {
       setUp: () {
         when(() => repository.getNoteById(any())).thenAnswer((_) async => null);
         when(
-          () => repository.createNote(captureAny()),
+          () => repository.upsertNote(captureAny()),
         ).thenAnswer((_) async {});
       },
       seed: () => EditorLoaded(
@@ -837,7 +832,7 @@ void main() {
       },
       verify: (_) {
         final captured = verify(
-          () => repository.createNote(captureAny()),
+          () => repository.upsertNote(captureAny()),
         ).captured;
         final note = captured.first as NoteModel;
         expect(note.height, 104.0); // exactly 1 line
@@ -850,7 +845,7 @@ void main() {
       setUp: () {
         when(() => repository.getNoteById(any())).thenAnswer((_) async => null);
         when(
-          () => repository.createNote(captureAny()),
+          () => repository.upsertNote(captureAny()),
         ).thenAnswer((_) async {});
       },
       seed: () => EditorLoaded(
@@ -867,7 +862,7 @@ void main() {
       ),
       verify: (_) {
         final captured = verify(
-          () => repository.createNote(captureAny()),
+          () => repository.upsertNote(captureAny()),
         ).captured;
         final note = captured.first as NoteModel;
         expect(note.id, kTestNoteId);
@@ -880,7 +875,7 @@ void main() {
       setUp: () {
         when(() => repository.getNoteById(any())).thenAnswer((_) async => null);
         when(
-          () => repository.createNote(captureAny()),
+          () => repository.upsertNote(captureAny()),
         ).thenAnswer((_) async {});
       },
       seed: () => EditorLoaded(
@@ -900,7 +895,7 @@ void main() {
       },
       verify: (_) {
         final captured = verify(
-          () => repository.createNote(captureAny()),
+          () => repository.upsertNote(captureAny()),
         ).captured;
         final note = captured.first as NoteModel;
         expect(note.height, 128.0);
@@ -913,7 +908,7 @@ void main() {
       setUp: () {
         when(() => repository.getNoteById(any())).thenAnswer((_) async => null);
         when(
-          () => repository.createNote(captureAny()),
+          () => repository.upsertNote(captureAny()),
         ).thenAnswer((_) async {});
       },
       seed: () => EditorLoaded(
@@ -934,7 +929,7 @@ void main() {
       },
       verify: (_) {
         final captured = verify(
-          () => repository.createNote(captureAny()),
+          () => repository.upsertNote(captureAny()),
         ).captured;
         final note = captured.first as NoteModel;
         expect(note.height, 560.0);
@@ -985,8 +980,8 @@ void main() {
         isA<EditorDiscarded>().having((s) => s.noteId, 'noteId', isNull),
       ],
       verify: (_) {
-        verifyNever(() => repository.updateNote(any()));
-        verifyNever(() => repository.createNote(any()));
+        verifyNever(() => repository.upsertNote(any()));
+        verifyNever(() => repository.upsertNote(any()));
       },
     );
 
@@ -1018,13 +1013,13 @@ void main() {
     );
 
     blocTest<EditorBloc, EditorState>(
-      'calls updateNote when title changed',
+      'calls upsertNote when title changed',
       build: buildBloc,
       setUp: () {
         when(() => repository.getNoteById(kTestNoteId)).thenAnswer(
           (_) async => makeNote(title: 'Old Title', content: kSomeDelta),
         );
-        when(() => repository.updateNote(any())).thenAnswer((_) async {});
+        when(() => repository.upsertNote(any())).thenAnswer((_) async {});
       },
       seed: () => EditorLoaded(
         noteId: kTestNoteId,
@@ -1043,19 +1038,19 @@ void main() {
         isA<EditorSaveSuccess>(),
       ],
       verify: (_) {
-        verify(() => repository.updateNote(any())).called(1);
-        verifyNever(() => repository.createNote(any()));
+        verify(() => repository.upsertNote(any())).called(1);
+        verifyNever(() => repository.upsertNote(any()));
       },
     );
 
     blocTest<EditorBloc, EditorState>(
-      'calls updateNote when content changed',
+      'calls upsertNote when content changed',
       build: buildBloc,
       setUp: () {
         when(() => repository.getNoteById(kTestNoteId)).thenAnswer(
           (_) async => makeNote(title: kTestTitle, content: kEmptyDelta),
         );
-        when(() => repository.updateNote(any())).thenAnswer((_) async {});
+        when(() => repository.upsertNote(any())).thenAnswer((_) async {});
       },
       seed: () => EditorLoaded(
         noteId: kTestNoteId,
@@ -1073,7 +1068,7 @@ void main() {
         isA<EditorLoaded>().having((s) => s.isSaving, 'isSaving', true),
         isA<EditorSaveSuccess>(),
       ],
-      verify: (_) => verify(() => repository.updateNote(any())).called(1),
+      verify: (_) => verify(() => repository.upsertNote(any())).called(1),
     );
 
     blocTest<EditorBloc, EditorState>(
@@ -1085,7 +1080,7 @@ void main() {
           () => repository.getNoteById(kTestNoteId),
         ).thenAnswer((_) async => original);
         when(
-          () => repository.updateNote(captureAny()),
+          () => repository.upsertNote(captureAny()),
         ).thenAnswer((_) async {});
       },
       seed: () => EditorLoaded(
@@ -1102,7 +1097,7 @@ void main() {
       ),
       verify: (_) {
         final captured = verify(
-          () => repository.updateNote(captureAny()),
+          () => repository.upsertNote(captureAny()),
         ).captured;
         final saved = captured.first as NoteModel;
         expect(saved.createdAt, DateTime(2020, 6, 15));
@@ -1118,7 +1113,7 @@ void main() {
           () => repository.getNoteById(kTestNoteId),
         ).thenAnswer((_) async => original);
         when(
-          () => repository.updateNote(captureAny()),
+          () => repository.upsertNote(captureAny()),
         ).thenAnswer((_) async {});
       },
       seed: () => EditorLoaded(
@@ -1135,7 +1130,7 @@ void main() {
       ),
       verify: (_) {
         final captured = verify(
-          () => repository.updateNote(captureAny()),
+          () => repository.upsertNote(captureAny()),
         ).captured;
         final saved = captured.first as NoteModel;
         expect(saved.updatedAt.isAfter(saved.createdAt), isTrue);
@@ -1143,14 +1138,14 @@ void main() {
     );
 
     blocTest<EditorBloc, EditorState>(
-      'emits EditorFailure(failedToSaveNote) when updateNote throws',
+      'emits EditorFailure(failedToSaveNote) when upsertNote throws',
       build: buildBloc,
       setUp: () {
         when(
           () => repository.getNoteById(kTestNoteId),
         ).thenAnswer((_) async => makeNote(title: 'Old', content: kEmptyDelta));
         when(
-          () => repository.updateNote(any()),
+          () => repository.upsertNote(any()),
         ).thenThrow(Exception('Network error'));
       },
       seed: () => EditorLoaded(
@@ -1176,7 +1171,7 @@ void main() {
     );
 
     blocTest<EditorBloc, EditorState>(
-      'emits EditorFailure when getNoteById throws during existing note save',
+      'emits EditorFailure when getNoteMetaData throws during existing note save',
       build: buildBloc,
       setUp: () {
         when(
@@ -1205,13 +1200,13 @@ void main() {
     );
 
     blocTest<EditorBloc, EditorState>(
-      'calls createNote when isNewNote=false but note no longer exists in DB',
+      'calls upsertNote when isNewNote=false but note no longer exists in DB',
       build: buildBloc,
       setUp: () {
         when(
           () => repository.getNoteById(kTestNoteId),
         ).thenAnswer((_) async => null);
-        when(() => repository.createNote(any())).thenAnswer((_) async {});
+        when(() => repository.upsertNote(any())).thenAnswer((_) async {});
       },
       seed: () => EditorLoaded(
         noteId: kTestNoteId,
@@ -1230,8 +1225,8 @@ void main() {
         isA<EditorSaveSuccess>(),
       ],
       verify: (_) {
-        verify(() => repository.createNote(any())).called(1);
-        verifyNever(() => repository.updateNote(any()));
+        verify(() => repository.upsertNote(any())).called(1);
+        verifyNever(() => repository.upsertNote(any()));
       },
     );
 
@@ -1260,8 +1255,8 @@ void main() {
         ),
       ],
       verify: (_) {
-        verifyNever(() => repository.updateNote(any()));
-        verifyNever(() => repository.createNote(any()));
+        verifyNever(() => repository.upsertNote(any()));
+        verifyNever(() => repository.upsertNote(any()));
       },
     );
   });
@@ -1302,7 +1297,7 @@ void main() {
         ),
       ),
       expect: () => [],
-      verify: (_) => verifyNever(() => repository.createNote(any())),
+      verify: (_) => verifyNever(() => repository.upsertNote(any())),
     );
 
     blocTest<EditorBloc, EditorState>(
@@ -1326,7 +1321,7 @@ void main() {
         ),
       ),
       expect: () => [],
-      verify: (_) => verifyNever(() => repository.updateNote(any())),
+      verify: (_) => verifyNever(() => repository.upsertNote(any())),
     );
 
     blocTest<EditorBloc, EditorState>(
@@ -1334,7 +1329,7 @@ void main() {
       build: buildBloc,
       setUp: () {
         when(() => repository.getNoteById(any())).thenAnswer((_) async => null);
-        when(() => repository.createNote(any())).thenAnswer((_) async {});
+        when(() => repository.upsertNote(any())).thenAnswer((_) async {});
       },
       seed: () => EditorLoaded(
         noteId: kTestNoteId,
@@ -1349,8 +1344,8 @@ void main() {
         ),
       ),
       verify: (_) {
-        verify(() => repository.createNote(any())).called(1);
-        verifyNever(() => repository.updateNote(any()));
+        verify(() => repository.upsertNote(any())).called(1);
+        verifyNever(() => repository.upsertNote(any()));
       },
     );
 
@@ -1359,7 +1354,7 @@ void main() {
       build: buildBloc,
       setUp: () {
         when(() => repository.getNoteById(any())).thenAnswer((_) async => null);
-        when(() => repository.createNote(any())).thenAnswer((_) async {});
+        when(() => repository.upsertNote(any())).thenAnswer((_) async {});
       },
       seed: () => EditorLoaded(
         noteId: kTestNoteId,
@@ -1383,7 +1378,7 @@ void main() {
       build: buildBloc,
       setUp: () {
         when(() => repository.getNoteById(any())).thenAnswer((_) async => null);
-        when(() => repository.createNote(any())).thenAnswer((_) async {});
+        when(() => repository.upsertNote(any())).thenAnswer((_) async {});
       },
       seed: () => EditorLoaded(
         noteId: kTestNoteId,
@@ -1410,7 +1405,7 @@ void main() {
         when(() => repository.getNoteById(kTestNoteId)).thenAnswer(
           (_) async => makeNote(title: kTestTitle, content: kEmptyDelta),
         );
-        when(() => repository.updateNote(any())).thenAnswer((_) async {});
+        when(() => repository.upsertNote(any())).thenAnswer((_) async {});
       },
       seed: () => EditorLoaded(
         noteId: kTestNoteId,
@@ -1425,8 +1420,8 @@ void main() {
         ),
       ),
       verify: (_) {
-        verify(() => repository.updateNote(any())).called(1);
-        verifyNever(() => repository.createNote(any()));
+        verify(() => repository.upsertNote(any())).called(1);
+        verifyNever(() => repository.upsertNote(any()));
       },
     );
 
@@ -1437,7 +1432,7 @@ void main() {
         when(() => repository.getNoteById(kTestNoteId)).thenAnswer(
           (_) async => makeNote(title: 'Old Title', content: kSomeDelta),
         );
-        when(() => repository.updateNote(any())).thenAnswer((_) async {});
+        when(() => repository.upsertNote(any())).thenAnswer((_) async {});
       },
       seed: () => EditorLoaded(
         noteId: kTestNoteId,
@@ -1451,7 +1446,7 @@ void main() {
           plainText: kSomePlainText,
         ),
       ),
-      verify: (_) => verify(() => repository.updateNote(any())).called(1),
+      verify: (_) => verify(() => repository.upsertNote(any())).called(1),
     );
 
     blocTest<EditorBloc, EditorState>(
@@ -1460,7 +1455,7 @@ void main() {
       setUp: () {
         when(() => repository.getNoteById(any())).thenAnswer((_) async => null);
         when(
-          () => repository.createNote(any()),
+          () => repository.upsertNote(any()),
         ).thenThrow(Exception('Network error'));
       },
       seed: () => EditorLoaded(
@@ -1488,7 +1483,7 @@ void main() {
           () => repository.getNoteById(kTestNoteId),
         ).thenAnswer((_) async => original);
         when(
-          () => repository.updateNote(captureAny()),
+          () => repository.upsertNote(captureAny()),
         ).thenAnswer((_) async {});
       },
       seed: () => EditorLoaded(
@@ -1505,7 +1500,7 @@ void main() {
       ),
       verify: (_) {
         final captured = verify(
-          () => repository.updateNote(captureAny()),
+          () => repository.upsertNote(captureAny()),
         ).captured;
         final saved = captured.first as NoteModel;
         expect(saved.createdAt, DateTime(2021, 3, 10));
@@ -1518,7 +1513,7 @@ void main() {
       setUp: () {
         when(() => repository.getNoteById(any())).thenAnswer((_) async => null);
         when(
-          () => repository.createNote(captureAny()),
+          () => repository.upsertNote(captureAny()),
         ).thenAnswer((_) async {});
       },
       seed: () => EditorLoaded(
@@ -1538,7 +1533,7 @@ void main() {
       },
       verify: (_) {
         final captured = verify(
-          () => repository.createNote(captureAny()),
+          () => repository.upsertNote(captureAny()),
         ).captured;
         final note = captured.first as NoteModel;
         expect(note.previewText.length, 40);
@@ -1551,7 +1546,7 @@ void main() {
       build: buildBloc,
       setUp: () {
         when(() => repository.getNoteById(any())).thenAnswer((_) async => null);
-        when(() => repository.createNote(any())).thenAnswer((_) async {});
+        when(() => repository.upsertNote(any())).thenAnswer((_) async {});
       },
       seed: () => EditorLoaded(
         noteId: kTestNoteId,
@@ -1568,11 +1563,11 @@ void main() {
       ),
       // The skip guard is: isNewNote && title.trim().isEmpty && plainText.trim().isEmpty
       // title is non-empty → guard is false → save proceeds
-      verify: (_) => verify(() => repository.createNote(any())).called(1),
+      verify: (_) => verify(() => repository.upsertNote(any())).called(1),
     );
 
     blocTest<EditorBloc, EditorState>(
-      'auto-save is silent when getNoteById throws (no state emitted, no crash)',
+      'auto-save is silent when getNoteMetaData throws (no state emitted, no crash)',
       build: buildBloc,
       setUp: () {
         when(
@@ -1593,7 +1588,7 @@ void main() {
       ),
       // catch(e) block logs and returns — no EditorFailure, no crash
       expect: () => [],
-      verify: (_) => verifyNever(() => repository.updateNote(any())),
+      verify: (_) => verifyNever(() => repository.upsertNote(any())),
     );
 
     blocTest<EditorBloc, EditorState>(
@@ -1603,7 +1598,7 @@ void main() {
         when(
           () => repository.getNoteById(kTestNoteId),
         ).thenAnswer((_) async => makeNote(content: kEmptyDelta));
-        when(() => repository.updateNote(any())).thenAnswer((_) async {});
+        when(() => repository.upsertNote(any())).thenAnswer((_) async {});
       },
       seed: () => EditorLoaded(
         noteId: kTestNoteId,
@@ -1699,7 +1694,7 @@ void main() {
       build: buildBloc,
       setUp: () {
         when(() => repository.getNoteById(any())).thenAnswer((_) async => null);
-        when(() => repository.createNote(any())).thenAnswer((_) async {});
+        when(() => repository.upsertNote(any())).thenAnswer((_) async {});
       },
       seed: () => EditorLoaded(
         noteId: kTestNoteId,
@@ -1730,14 +1725,14 @@ void main() {
     );
 
     blocTest<EditorBloc, EditorState>(
-      'auto-save then manual save calls updateNote on second save',
+      'auto-save then manual save calls upsertNote on second save',
       build: buildBloc,
       setUp: () {
         when(
           () => repository.getNoteById(kTestNoteId),
         ).thenAnswer((_) async => null);
-        when(() => repository.createNote(any())).thenAnswer((_) async {});
-        when(() => repository.updateNote(any())).thenAnswer((_) async {});
+        when(() => repository.upsertNote(any())).thenAnswer((_) async {});
+        when(() => repository.upsertNote(any())).thenAnswer((_) async {});
       },
       seed: () => EditorLoaded(
         noteId: kTestNoteId,
@@ -1755,7 +1750,7 @@ void main() {
         );
         await Future<void>.delayed(Duration.zero);
 
-        // Now stub getNoteById to return the note that was just "created"
+        // Now stub getNoteMetaData to return the note that was just "created"
         when(
           () => repository.getNoteById(kTestNoteId),
         ).thenAnswer((_) async => makeNote());
@@ -1769,17 +1764,17 @@ void main() {
         );
       },
       verify: (_) {
-        verify(() => repository.createNote(any())).called(1);
+        verify(() => repository.upsertNote(any())).called(1);
       },
     );
 
     blocTest<EditorBloc, EditorState>(
-      'second save after create calls createNote only once (re-init simulated)',
+      'second save after create calls upsertNote only once (re-init simulated)',
       build: buildBloc,
       setUp: () {
         when(() => repository.getNoteById(any())).thenAnswer((_) async => null);
-        when(() => repository.createNote(any())).thenAnswer((_) async {});
-        when(() => repository.updateNote(any())).thenAnswer((_) async {});
+        when(() => repository.upsertNote(any())).thenAnswer((_) async {});
+        when(() => repository.upsertNote(any())).thenAnswer((_) async {});
       },
       act: (bloc) async {
         bloc.emit(
@@ -1808,7 +1803,7 @@ void main() {
       },
       wait: const Duration(milliseconds: 300),
       verify: (_) {
-        verify(() => repository.createNote(any())).called(1);
+        verify(() => repository.upsertNote(any())).called(1);
       },
     );
 

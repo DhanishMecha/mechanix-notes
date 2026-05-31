@@ -3,12 +3,12 @@ import 'package:mechanix_notes/core/utils/app_logger.dart';
 import 'package:mechanix_notes/core/utils/constants.dart';
 import 'package:mechanix_notes/features/notes/bloc/search/search_event.dart';
 import 'package:mechanix_notes/features/notes/bloc/search/search_state.dart';
-import 'package:mechanix_notes/features/notes/data/repository/search_repository.dart';
+import 'package:mechanix_notes/features/notes/data/repository/note_repository.dart';
 
 class SearchBloc extends Bloc<SearchEvent, SearchState> {
-  final SearchRepository searchRepository;
+  final NoteRepository noteRepository;
 
-  SearchBloc({required this.searchRepository}) : super(const SearchState()) {
+  SearchBloc({required this.noteRepository}) : super(const SearchState()) {
     on<SearchQueryChanged>(_onSearchQueryChanged);
     on<LoadMoreSearchResults>(_onLoadMoreSearchResults);
     on<ClearSearch>(_onClearSearch);
@@ -34,7 +34,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     AppLogger.i("Searching notes for query: $query");
 
     try {
-      final filteredNotes = await searchRepository.searchNotes(query);
+      final filteredNotes = await noteRepository.searchNotes(query);
 
       final firstPage = filteredNotes.take(Constants.pageSize).toList();
       final hasMore = filteredNotes.length > Constants.pageSize;

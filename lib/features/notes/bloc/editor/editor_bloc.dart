@@ -9,14 +9,14 @@ import 'package:mechanix_notes/core/utils/app_logger.dart';
 import 'package:mechanix_notes/core/utils/constants.dart';
 import 'package:mechanix_notes/core/utils/helper.dart';
 import 'package:mechanix_notes/features/notes/data/models/note_model.dart';
-import 'package:mechanix_notes/features/notes/data/repository/editor_repository.dart';
+import 'package:mechanix_notes/features/notes/data/repository/note_repository.dart';
 import 'package:uuid/uuid.dart';
 import 'package:mechanix_notes/core/utils/enums.dart';
 part 'editor_event.dart';
 part 'editor_state.dart';
 
 class EditorBloc extends Bloc<EditorEvent, EditorState> {
-  final EditorRepository _repository;
+  final NoteRepository _repository;
 
   EditorBloc(this._repository) : super(const EditorInitial()) {
     on<EditorInitialised>(_onInitialised);
@@ -140,27 +140,14 @@ class EditorBloc extends Bloc<EditorEvent, EditorState> {
 
       emit(current.copyWith(isSaving: true));
 
-      final now = DateTime.now();
-      final previewText = event.plainText.length > Constants.noteTitleMaxLength
-          ? event.plainText.trim().substring(0, Constants.noteTitleMaxLength)
-          : event.plainText.trim();
-
-      final note = NoteModel(
-        id: current.noteId,
-        title: current.title,
-        content: deltaJson,
+      final note = buildNote(
+        current: current,
+        deltaJson: deltaJson,
         plainText: event.plainText,
-        previewText: previewText,
-        height: _estimateHeight(event.plainText),
-        createdAt: existing?.createdAt ?? now,
-        updatedAt: now,
+        existing: existing,
       );
 
-      if (existing != null) {
-        await _repository.updateNote(note);
-      } else {
-        await _repository.createNote(note);
-      }
+      await _repository.upsertNote(note);
 
       AppLogger.i('EditorBloc: Manual save success for ${current.noteId}');
       emit(EditorSaveSuccess(current.noteId));
@@ -168,6 +155,31 @@ class EditorBloc extends Bloc<EditorEvent, EditorState> {
       AppLogger.e('EditorBloc: Manual save failed: $e');
       emit(const EditorFailure(ErrorCategory.failedToSaveNote));
     }
+  }
+
+  NoteModel buildNote({
+    required EditorLoaded current,
+    required String deltaJson,
+    required String plainText,
+    NoteModel? existing,
+  }) {
+    final now = DateTime.now();
+
+    final trimmedText = plainText.trim();
+    final previewText = trimmedText.length > Constants.noteTitleMaxLength
+        ? trimmedText.substring(0, Constants.noteTitleMaxLength)
+        : trimmedText;
+
+    return NoteModel(
+      id: current.noteId,
+      title: current.title,
+      content: deltaJson,
+      plainText: plainText,
+      previewText: previewText,
+      height: _estimateHeight(plainText),
+      createdAt: existing?.createdAt ?? now,
+      updatedAt: now,
+    );
   }
 
   Future<void> _onAutoSaveRequested(
@@ -194,26 +206,15 @@ class EditorBloc extends Bloc<EditorEvent, EditorState> {
           event.plainText.trim().isEmpty) {
         return;
       }
-      final previewText = event.plainText.length > Constants.noteTitleMaxLength
-          ? event.plainText.trim().substring(0, Constants.noteTitleMaxLength)
-          : event.plainText.trim();
-      final now = DateTime.now();
-      final note = NoteModel(
-        id: current.noteId,
-        title: current.title,
-        content: deltaJson,
+
+      final note = buildNote(
+        current: current,
+        deltaJson: deltaJson,
         plainText: event.plainText,
-        previewText: previewText,
-        height: _estimateHeight(event.plainText),
-        createdAt: existing?.createdAt ?? now,
-        updatedAt: now,
+        existing: existing,
       );
 
-      if (existing != null) {
-        await _repository.updateNote(note);
-      } else {
-        await _repository.createNote(note);
-      }
+      await _repository.upsertNote(note);
 
       AppLogger.i('EditorBloc: Auto-save success for ${current.noteId}');
       emit(
