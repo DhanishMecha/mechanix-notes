@@ -107,7 +107,7 @@ jobs:
 
       - name: Setup | Pulp CLI
         run: |
-          pipx install --force pulp-cli[pygments]
+          pipx install --force "pulp-cli==0.39.3"
           pipx inject pulp-cli pulp_rpm
 
       - name: Configure Pulp CLI
