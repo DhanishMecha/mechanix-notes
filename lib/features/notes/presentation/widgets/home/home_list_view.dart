@@ -52,7 +52,11 @@ class _HomeListViewState extends State<HomeListView> {
       listenWhen: (prev, curr) => curr.isRefreshed,
       listener: (context, state) {
         if (_scrollController.hasClients) {
-          _scrollController.jumpTo(0);
+          _scrollController.animateTo(
+            0,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+          );
         }
       },
       child: BlocBuilder<NotesBloc, NotesState>(
