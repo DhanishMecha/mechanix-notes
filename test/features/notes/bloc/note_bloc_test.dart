@@ -1,6 +1,6 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mechanix_notes/core/exceptions/hive_exception.dart';
+import 'package:mechanix_notes/core/exceptions/objectbox_exception.dart';
 import 'package:mechanix_notes/core/utils/constants.dart';
 import 'package:mechanix_notes/core/utils/enums.dart';
 import 'package:mechanix_notes/features/notes/bloc/notes/notes_event.dart';
@@ -12,7 +12,29 @@ import 'package:mechanix_notes/features/notes/data/models/note_metadata.dart';
 import 'package:mechanix_notes/features/notes/data/repository/note_repository.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
-class MockNoteRepository extends Mock implements NoteRepository {}
+class MockNoteRepository extends Mock implements NoteRepository {
+  @override
+  Future<List<NoteMetaData>> getNotes({int? skip, int? take}) async {
+    final dynamic raw = super.noSuchMethod(
+      Invocation.method(#getNotes, null, null),
+    );
+    if (raw == null) {
+      return [];
+    }
+    final List<NoteMetaData> allNotes = await (raw as Future<List<NoteMetaData>>);
+    
+    var result = allNotes;
+    if (skip != null && skip < result.length) {
+      result = result.skip(skip).toList();
+    } else if (skip != null) {
+      result = [];
+    }
+    if (take != null) {
+      result = result.take(take).toList();
+    }
+    return result;
+  }
+}
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -108,17 +130,17 @@ void main() {
 
   group('NotesBloc – constructor', () {
     test('initial state is default NotesState', () {
-      when(() => mockRepo.getAllNotes()).thenAnswer((_) async => []);
+      when(() => mockRepo.getNotes()).thenAnswer((_) async => []);
       final bloc = NotesBloc(noteRepository: mockRepo);
       expect(bloc.state, const NotesState());
       bloc.close();
     });
 
     test('dispatches LoadNotes on creation', () async {
-      when(() => mockRepo.getAllNotes()).thenAnswer((_) async => []);
+      when(() => mockRepo.getNotes()).thenAnswer((_) async => []);
       final bloc = NotesBloc(noteRepository: mockRepo);
       await bloc.stream.first;
-      verify(() => mockRepo.getAllNotes()).called(1);
+      verify(() => mockRepo.getNotes()).called(1);
       await bloc.close();
     });
   });
@@ -129,7 +151,7 @@ void main() {
     blocTest<NotesBloc, NotesState>(
       'emits [loading, loaded] with empty list when repository returns nothing',
       build: () {
-        when(() => mockRepo.getAllNotes()).thenAnswer((_) async => []);
+        when(() => mockRepo.getNotes()).thenAnswer((_) async => []);
         return NotesBloc(noteRepository: mockRepo);
       },
       skip: 2,
@@ -149,7 +171,7 @@ void main() {
       'emits loaded state with correct notes when count ≤ pageSize',
       build: () {
         final notes = buildNoteList(5);
-        when(() => mockRepo.getAllNotes()).thenAnswer((_) async => notes);
+        when(() => mockRepo.getNotes()).thenAnswer((_) async => notes);
         return NotesBloc(noteRepository: mockRepo);
       },
       skip: 2,
@@ -168,7 +190,7 @@ void main() {
       'sets hasMore=true when total notes exceed pageSize',
       build: () {
         final notes = buildNoteList(Constants.pageSize + 5);
-        when(() => mockRepo.getAllNotes()).thenAnswer((_) async => notes);
+        when(() => mockRepo.getNotes()).thenAnswer((_) async => notes);
         return NotesBloc(noteRepository: mockRepo);
       },
       skip: 2,
@@ -180,7 +202,7 @@ void main() {
             .having(
               (s) => s.notes.length,
               'notes.length',
-              Constants.pageSize + 5,
+              Constants.pageSize,
             ),
       ],
     );
@@ -189,7 +211,7 @@ void main() {
       'resets currentPage to 0 on fresh load',
       build: () {
         when(
-          () => mockRepo.getAllNotes(),
+          () => mockRepo.getNotes(),
         ).thenAnswer((_) async => buildNoteList(3));
         return NotesBloc(noteRepository: mockRepo);
       },
@@ -204,7 +226,7 @@ void main() {
     blocTest<NotesBloc, NotesState>(
       'clears previous error on successful reload',
       build: () {
-        when(() => mockRepo.getAllNotes()).thenAnswer((_) async => []);
+        when(() => mockRepo.getNotes()).thenAnswer((_) async => []);
         return NotesBloc(noteRepository: mockRepo);
       },
       seed: () => const NotesState(
@@ -228,7 +250,7 @@ void main() {
       'groupedNotes contains exactly pageSize notes when total > pageSize',
       build: () {
         final notes = buildNoteList(Constants.pageSize + 10);
-        when(() => mockRepo.getAllNotes()).thenAnswer((_) async => notes);
+        when(() => mockRepo.getNotes()).thenAnswer((_) async => notes);
         return NotesBloc(noteRepository: mockRepo);
       },
       skip: 2,
@@ -240,16 +262,16 @@ void main() {
     );
 
     blocTest<NotesBloc, NotesState>(
-      'stores all notes in state.notes regardless of pageSize',
+      'stores only first page of notes in state.notes when total exceeds pageSize',
       build: () {
         final notes = buildNoteList(Constants.pageSize + 10);
-        when(() => mockRepo.getAllNotes()).thenAnswer((_) async => notes);
+        when(() => mockRepo.getNotes()).thenAnswer((_) async => notes);
         return NotesBloc(noteRepository: mockRepo);
       },
       skip: 2,
       act: (bloc) => bloc.add(LoadNotes()),
       verify: (bloc) {
-        expect(bloc.state.notes.length, Constants.pageSize + 10);
+        expect(bloc.state.notes.length, Constants.pageSize);
       },
     );
   });
@@ -260,7 +282,7 @@ void main() {
     blocTest<NotesBloc, NotesState>(
       'emits error state when repository throws',
       build: () {
-        when(() => mockRepo.getAllNotes()).thenThrow(Exception('db error'));
+        when(() => mockRepo.getNotes()).thenThrow(Exception('db error'));
         return NotesBloc(noteRepository: mockRepo);
       },
       skip: 2,
@@ -277,7 +299,7 @@ void main() {
     blocTest<NotesBloc, NotesState>(
       'emits failedToLoadNotes error category on generic exception',
       build: () {
-        when(() => mockRepo.getAllNotes()).thenThrow(Exception('any'));
+        when(() => mockRepo.getNotes()).thenThrow(Exception('any'));
         return NotesBloc(noteRepository: mockRepo);
       },
       skip: 2,
@@ -293,9 +315,9 @@ void main() {
     );
 
     blocTest<NotesBloc, NotesState>(
-      'emits appAlreadyRunning error when HiveLockedException is thrown',
+      'emits appAlreadyRunning error when ObjectBoxException is thrown',
       build: () {
-        when(() => mockRepo.getAllNotes()).thenThrow(HiveLockedException());
+        when(() => mockRepo.getNotes()).thenThrow(ObjectBoxException());
         return NotesBloc(noteRepository: mockRepo);
       },
       skip: 2,
@@ -313,7 +335,7 @@ void main() {
     blocTest<NotesBloc, NotesState>(
       'notes remain empty after failed load',
       build: () {
-        when(() => mockRepo.getAllNotes()).thenThrow(Exception('any'));
+        when(() => mockRepo.getNotes()).thenThrow(Exception('any'));
         return NotesBloc(noteRepository: mockRepo);
       },
       skip: 2,
@@ -332,7 +354,7 @@ void main() {
       'assigns TimeCategory.recent for a note updated less than 2 hours ago',
       build: () {
         when(
-          () => mockRepo.getAllNotes(),
+          () => mockRepo.getNotes(),
         ).thenAnswer((_) async => [recentNote('r1')]);
         return NotesBloc(noteRepository: mockRepo);
       },
@@ -350,7 +372,7 @@ void main() {
       'assigns TimeCategory.today for a note updated earlier today (≥2 h ago)',
       build: () {
         when(
-          () => mockRepo.getAllNotes(),
+          () => mockRepo.getNotes(),
         ).thenAnswer((_) async => [todayNote('t1')]);
         return NotesBloc(noteRepository: mockRepo);
       },
@@ -368,7 +390,7 @@ void main() {
       'assigns TimeCategory.last7Days for a note updated yesterday',
       build: () {
         when(
-          () => mockRepo.getAllNotes(),
+          () => mockRepo.getNotes(),
         ).thenAnswer((_) async => [yesterdayNote('y1')]);
         return NotesBloc(noteRepository: mockRepo);
       },
@@ -386,7 +408,7 @@ void main() {
       'assigns TimeCategory.last7Days for a note from this week',
       build: () {
         when(
-          () => mockRepo.getAllNotes(),
+          () => mockRepo.getNotes(),
         ).thenAnswer((_) async => [thisWeekNote('w1')]);
         return NotesBloc(noteRepository: mockRepo);
       },
@@ -404,7 +426,7 @@ void main() {
       'assigns TimeCategory.last7Days for a note 6 days ago',
       build: () {
         when(
-          () => mockRepo.getAllNotes(),
+          () => mockRepo.getNotes(),
         ).thenAnswer((_) async => [lastWeekNote('lw1')]);
         return NotesBloc(noteRepository: mockRepo);
       },
@@ -422,7 +444,7 @@ void main() {
       'assigns TimeCategory.lastMonth or last7Days for a note from this month start',
       build: () {
         when(
-          () => mockRepo.getAllNotes(),
+          () => mockRepo.getNotes(),
         ).thenAnswer((_) async => [thisMonthNote('tm1')]);
         return NotesBloc(noteRepository: mockRepo);
       },
@@ -443,7 +465,7 @@ void main() {
       'assigns TimeCategory.lastMonth for a note from last month',
       build: () {
         when(
-          () => mockRepo.getAllNotes(),
+          () => mockRepo.getNotes(),
         ).thenAnswer((_) async => [lastMonthNote('lm1')]);
         return NotesBloc(noteRepository: mockRepo);
       },
@@ -461,7 +483,7 @@ void main() {
       'assigns TimeCategory.custom for a note older than 30 days',
       build: () {
         when(
-          () => mockRepo.getAllNotes(),
+          () => mockRepo.getNotes(),
         ).thenAnswer((_) async => [olderNote('o1')]);
         return NotesBloc(noteRepository: mockRepo);
       },
@@ -479,7 +501,7 @@ void main() {
       'custom TimeGroup has a non-null customLabel formatted as "MMMM yyyy"',
       build: () {
         when(
-          () => mockRepo.getAllNotes(),
+          () => mockRepo.getNotes(),
         ).thenAnswer((_) async => [olderNote('o1')]);
         return NotesBloc(noteRepository: mockRepo);
       },
@@ -501,7 +523,7 @@ void main() {
     blocTest<NotesBloc, NotesState>(
       'does NOT repeat the same TimeGroup for consecutive notes in the same group',
       build: () {
-        when(() => mockRepo.getAllNotes()).thenAnswer(
+        when(() => mockRepo.getNotes()).thenAnswer(
           (_) async => [recentNote('r1'), recentNote('r2'), recentNote('r3')],
         );
         return NotesBloc(noteRepository: mockRepo);
@@ -521,7 +543,7 @@ void main() {
       'inserts a new TimeGroup when the time category changes across notes',
       build: () {
         when(
-          () => mockRepo.getAllNotes(),
+          () => mockRepo.getNotes(),
         ).thenAnswer((_) async => [recentNote('r1'), lastMonthNote('lm1')]);
         return NotesBloc(noteRepository: mockRepo);
       },
@@ -539,7 +561,7 @@ void main() {
       'flattened list alternates TimeGroups and NoteMetaData in correct order',
       build: () {
         when(
-          () => mockRepo.getAllNotes(),
+          () => mockRepo.getNotes(),
         ).thenAnswer((_) async => [recentNote('r1'), lastMonthNote('lm1')]);
         return NotesBloc(noteRepository: mockRepo);
       },
@@ -559,7 +581,7 @@ void main() {
       'single note produces exactly one TimeGroup and one NoteMetaData',
       build: () {
         when(
-          () => mockRepo.getAllNotes(),
+          () => mockRepo.getNotes(),
         ).thenAnswer((_) async => [recentNote('r1')]);
         return NotesBloc(noteRepository: mockRepo);
       },
@@ -580,7 +602,7 @@ void main() {
       'sets hasMore=true when total notes exceed pageSize',
       build: () {
         final notes = buildNoteList(Constants.pageSize + 5);
-        when(() => mockRepo.getAllNotes()).thenAnswer((_) async => notes);
+        when(() => mockRepo.getNotes()).thenAnswer((_) async => notes);
         return NotesBloc(noteRepository: mockRepo);
       },
       skip: 2,
@@ -592,7 +614,7 @@ void main() {
             .having(
               (s) => s.notes.length,
               'notes.length',
-              Constants.pageSize + 5,
+              Constants.pageSize,
             ),
       ],
     );
@@ -601,7 +623,7 @@ void main() {
       'increments currentPage after loading more',
       build: () {
         final notes = buildNoteList(Constants.pageSize * 2);
-        when(() => mockRepo.getAllNotes()).thenAnswer((_) async => notes);
+        when(() => mockRepo.getNotes()).thenAnswer((_) async => notes);
         return NotesBloc(noteRepository: mockRepo);
       },
       skip: 2,
@@ -616,7 +638,7 @@ void main() {
       'sets hasMore=true when another full page is available',
       build: () {
         final notes = buildNoteList(Constants.pageSize * 2);
-        when(() => mockRepo.getAllNotes()).thenAnswer((_) async => notes);
+        when(() => mockRepo.getNotes()).thenAnswer((_) async => notes);
         return NotesBloc(noteRepository: mockRepo);
       },
       skip: 2,
@@ -631,7 +653,7 @@ void main() {
       'does not duplicate the section TimeGroup when new batch is in the same group',
       build: () {
         final notes = buildNoteList(Constants.pageSize + 5);
-        when(() => mockRepo.getAllNotes()).thenAnswer((_) async => notes);
+        when(() => mockRepo.getNotes()).thenAnswer((_) async => notes);
         return NotesBloc(noteRepository: mockRepo);
       },
       skip: 2,
@@ -649,7 +671,7 @@ void main() {
       'appends new notes to groupedNotes after load more',
       build: () {
         final notes = buildNoteList(Constants.pageSize + 5);
-        when(() => mockRepo.getAllNotes()).thenAnswer((_) async => notes);
+        when(() => mockRepo.getNotes()).thenAnswer((_) async => notes);
         return NotesBloc(noteRepository: mockRepo);
       },
       skip: 2,
@@ -665,7 +687,7 @@ void main() {
       build: () {
         // pageSize + 3 means second batch has only 3 notes (< pageSize)
         final notes = buildNoteList(Constants.pageSize + 3);
-        when(() => mockRepo.getAllNotes()).thenAnswer((_) async => notes);
+        when(() => mockRepo.getNotes()).thenAnswer((_) async => notes);
         return NotesBloc(noteRepository: mockRepo);
       },
       skip: 2,
@@ -683,7 +705,7 @@ void main() {
       'sets hasMore=true when total notes exceed pageSize',
       build: () {
         final notes = buildNoteList(25);
-        when(() => mockRepo.getAllNotes()).thenAnswer((_) async => notes);
+        when(() => mockRepo.getNotes()).thenAnswer((_) async => notes);
         return NotesBloc(noteRepository: mockRepo);
       },
       skip: 2,
@@ -692,7 +714,7 @@ void main() {
         isA<NotesState>().having((s) => s.isLoading, 'isLoading', true),
         isA<NotesState>()
             .having((s) => s.hasMore, 'hasMore', true)
-            .having((s) => s.notes.length, 'notes.length', 25),
+            .having((s) => s.notes.length, 'notes.length', Constants.pageSize),
       ],
     );
 
@@ -700,7 +722,7 @@ void main() {
       'ignores concurrent LoadMoreNotes while already loading more',
       build: () {
         final notes = buildNoteList(Constants.pageSize * 3);
-        when(() => mockRepo.getAllNotes()).thenAnswer((_) async => notes);
+        when(() => mockRepo.getNotes()).thenAnswer((_) async => notes);
         return NotesBloc(noteRepository: mockRepo);
       },
       skip: 2,
@@ -717,12 +739,17 @@ void main() {
       'emits hasMore=false and isLoadingMore=false when new batch is empty',
       build: () {
         final notes = buildNoteList(Constants.pageSize);
-        when(() => mockRepo.getAllNotes()).thenAnswer((_) async => notes);
+        when(() => mockRepo.getNotes()).thenAnswer((_) async => notes);
         return NotesBloc(noteRepository: mockRepo);
       },
       skip: 2,
       act: (bloc) => bloc.add(LoadMoreNotes()),
-      expect: () => [],
+      expect: () => [
+        isA<NotesState>().having((s) => s.isLoadingMore, 'isLoadingMore', true),
+        isA<NotesState>()
+            .having((s) => s.isLoadingMore, 'isLoadingMore', false)
+            .having((s) => s.hasMore, 'hasMore', false),
+      ],
     );
   });
 
@@ -733,7 +760,7 @@ void main() {
       'emits isLoadingMore=false on exception without changing existing notes',
       build: () {
         final notes = buildNoteList(Constants.pageSize + 1);
-        when(() => mockRepo.getAllNotes()).thenAnswer((_) async => notes);
+        when(() => mockRepo.getNotes()).thenAnswer((_) async => notes);
         return NotesBloc(noteRepository: mockRepo);
       },
       seed: () => NotesState(
@@ -768,7 +795,7 @@ void main() {
       'moves the refreshed note to the top of state.notes',
       build: () {
         final notes = buildNoteList(3);
-        when(() => mockRepo.getAllNotes()).thenAnswer((_) async => notes);
+        when(() => mockRepo.getNotes()).thenAnswer((_) async => notes);
         when(() => mockRepo.getNoteMetaData('note_2')).thenAnswer(
           (_) async => makeNote(
             id: 'note_2',
@@ -788,7 +815,7 @@ void main() {
       'removes the old entry of the refreshed note from state.notes',
       build: () {
         final notes = buildNoteList(3);
-        when(() => mockRepo.getAllNotes()).thenAnswer((_) async => notes);
+        when(() => mockRepo.getNotes()).thenAnswer((_) async => notes);
         when(() => mockRepo.getNoteMetaData('note_1')).thenAnswer(
           (_) async => makeNote(
             id: 'note_1',
@@ -809,7 +836,7 @@ void main() {
       'sets isRefreshed=true after refresh completes',
       build: () {
         final notes = buildNoteList(3);
-        when(() => mockRepo.getAllNotes()).thenAnswer((_) async => notes);
+        when(() => mockRepo.getNotes()).thenAnswer((_) async => notes);
         when(() => mockRepo.getNoteMetaData('note_0')).thenAnswer(
           (_) async => makeNote(
             id: 'note_0',
@@ -829,7 +856,7 @@ void main() {
       'resets currentPage to 0 after refresh',
       build: () {
         final notes = buildNoteList(3);
-        when(() => mockRepo.getAllNotes()).thenAnswer((_) async => notes);
+        when(() => mockRepo.getNotes()).thenAnswer((_) async => notes);
         when(() => mockRepo.getNoteMetaData('note_0')).thenAnswer(
           (_) async => makeNote(
             id: 'note_0',
@@ -855,7 +882,7 @@ void main() {
       'does nothing when repository returns null for the note',
       build: () {
         final notes = buildNoteList(3);
-        when(() => mockRepo.getAllNotes()).thenAnswer((_) async => notes);
+        when(() => mockRepo.getNotes()).thenAnswer((_) async => notes);
         when(
           () => mockRepo.getNoteMetaData('missing'),
         ).thenAnswer((_) async => null);
@@ -870,7 +897,7 @@ void main() {
       'does not crash when repository throws during refresh',
       build: () {
         final notes = buildNoteList(3);
-        when(() => mockRepo.getAllNotes()).thenAnswer((_) async => notes);
+        when(() => mockRepo.getNotes()).thenAnswer((_) async => notes);
         when(
           () => mockRepo.getNoteMetaData(any()),
         ).thenThrow(Exception('fetch error'));
@@ -887,7 +914,7 @@ void main() {
       build: () {
         // Note with an old update time goes to lastMonth, not recent
         final oldNote = lastMonthNote('old_note');
-        when(() => mockRepo.getAllNotes()).thenAnswer((_) async => [oldNote]);
+        when(() => mockRepo.getNotes()).thenAnswer((_) async => [oldNote]);
         when(
           () => mockRepo.getNoteMetaData('old_note'),
         ).thenAnswer((_) async => oldNote);
@@ -907,7 +934,7 @@ void main() {
       'removes deleted note ids from state.notes',
       build: () {
         final notes = buildNoteList(5);
-        when(() => mockRepo.getAllNotes()).thenAnswer((_) async => notes);
+        when(() => mockRepo.getNotes()).thenAnswer((_) async => notes);
         when(
           () => mockRepo.deleteNotes(['note_0', 'note_1']),
         ).thenAnswer((_) async {});
@@ -927,7 +954,7 @@ void main() {
       'sets isRefreshed=true after deletion',
       build: () {
         final notes = buildNoteList(3);
-        when(() => mockRepo.getAllNotes()).thenAnswer((_) async => notes);
+        when(() => mockRepo.getNotes()).thenAnswer((_) async => notes);
         when(() => mockRepo.deleteNotes(any())).thenAnswer((_) async {});
         return NotesBloc(noteRepository: mockRepo);
       },
@@ -942,7 +969,7 @@ void main() {
       'clears selectedNotes after deletion',
       build: () {
         final notes = buildNoteList(3);
-        when(() => mockRepo.getAllNotes()).thenAnswer((_) async => notes);
+        when(() => mockRepo.getNotes()).thenAnswer((_) async => notes);
         when(() => mockRepo.deleteNotes(any())).thenAnswer((_) async {});
         return NotesBloc(noteRepository: mockRepo);
       },
@@ -964,7 +991,7 @@ void main() {
       'uses selectedNotes from state when isSelectionMode is true',
       build: () {
         final notes = buildNoteList(5);
-        when(() => mockRepo.getAllNotes()).thenAnswer((_) async => notes);
+        when(() => mockRepo.getNotes()).thenAnswer((_) async => notes);
         when(
           () => mockRepo.deleteNotes(['note_0', 'note_1']),
         ).thenAnswer((_) async {});
@@ -990,7 +1017,7 @@ void main() {
       'does nothing when selectedNotes is empty and event.noteIds is null',
       build: () {
         final notes = buildNoteList(3);
-        when(() => mockRepo.getAllNotes()).thenAnswer((_) async => notes);
+        when(() => mockRepo.getNotes()).thenAnswer((_) async => notes);
         return NotesBloc(noteRepository: mockRepo);
       },
       skip: 2,
@@ -1004,7 +1031,7 @@ void main() {
       'emits failedToDeleteNotes error when repository throws',
       build: () {
         final notes = buildNoteList(3);
-        when(() => mockRepo.getAllNotes()).thenAnswer((_) async => notes);
+        when(() => mockRepo.getNotes()).thenAnswer((_) async => notes);
         when(
           () => mockRepo.deleteNotes(any()),
         ).thenThrow(Exception('db error'));
@@ -1021,7 +1048,7 @@ void main() {
       'resets currentPage to 0 and rebuilds groupedNotes after deletion',
       build: () {
         final notes = buildNoteList(5);
-        when(() => mockRepo.getAllNotes()).thenAnswer((_) async => notes);
+        when(() => mockRepo.getNotes()).thenAnswer((_) async => notes);
         when(() => mockRepo.deleteNotes(any())).thenAnswer((_) async {});
         return NotesBloc(noteRepository: mockRepo);
       },
@@ -1046,7 +1073,7 @@ void main() {
     blocTest<NotesBloc, NotesState>(
       'turns selection mode ON when it was OFF',
       build: () {
-        when(() => mockRepo.getAllNotes()).thenAnswer((_) async => []);
+        when(() => mockRepo.getNotes()).thenAnswer((_) async => []);
         return NotesBloc(noteRepository: mockRepo);
       },
       seed: () => const NotesState(isSelectionMode: false),
@@ -1060,7 +1087,7 @@ void main() {
     blocTest<NotesBloc, NotesState>(
       'turns selection mode OFF when it was ON and clears selectedNotes',
       build: () {
-        when(() => mockRepo.getAllNotes()).thenAnswer((_) async => []);
+        when(() => mockRepo.getNotes()).thenAnswer((_) async => []);
         return NotesBloc(noteRepository: mockRepo);
       },
       seed: () => const NotesState(
@@ -1078,7 +1105,7 @@ void main() {
     blocTest<NotesBloc, NotesState>(
       'toggling twice returns to the original state',
       build: () {
-        when(() => mockRepo.getAllNotes()).thenAnswer((_) async => []);
+        when(() => mockRepo.getNotes()).thenAnswer((_) async => []);
         return NotesBloc(noteRepository: mockRepo);
       },
       seed: () => const NotesState(isSelectionMode: false),
@@ -1099,7 +1126,7 @@ void main() {
     blocTest<NotesBloc, NotesState>(
       'adds a note to selectedNotes when it was not selected',
       build: () {
-        when(() => mockRepo.getAllNotes()).thenAnswer((_) async => []);
+        when(() => mockRepo.getNotes()).thenAnswer((_) async => []);
         return NotesBloc(noteRepository: mockRepo);
       },
       seed: () => const NotesState(isSelectionMode: true, selectedNotes: []),
@@ -1113,7 +1140,7 @@ void main() {
     blocTest<NotesBloc, NotesState>(
       'removes a note from selectedNotes when it was already selected',
       build: () {
-        when(() => mockRepo.getAllNotes()).thenAnswer((_) async => []);
+        when(() => mockRepo.getNotes()).thenAnswer((_) async => []);
         return NotesBloc(noteRepository: mockRepo);
       },
       seed: () =>
@@ -1128,7 +1155,7 @@ void main() {
     blocTest<NotesBloc, NotesState>(
       'activates selection mode when first note is selected',
       build: () {
-        when(() => mockRepo.getAllNotes()).thenAnswer((_) async => []);
+        when(() => mockRepo.getNotes()).thenAnswer((_) async => []);
         return NotesBloc(noteRepository: mockRepo);
       },
       seed: () => const NotesState(isSelectionMode: false, selectedNotes: []),
@@ -1143,7 +1170,7 @@ void main() {
     blocTest<NotesBloc, NotesState>(
       'can select multiple distinct notes',
       build: () {
-        when(() => mockRepo.getAllNotes()).thenAnswer((_) async => []);
+        when(() => mockRepo.getNotes()).thenAnswer((_) async => []);
         return NotesBloc(noteRepository: mockRepo);
       },
       seed: () => const NotesState(isSelectionMode: true, selectedNotes: []),
@@ -1164,7 +1191,7 @@ void main() {
     blocTest<NotesBloc, NotesState>(
       'selecting and deselecting the same note leaves selectedNotes empty',
       build: () {
-        when(() => mockRepo.getAllNotes()).thenAnswer((_) async => []);
+        when(() => mockRepo.getNotes()).thenAnswer((_) async => []);
         return NotesBloc(noteRepository: mockRepo);
       },
       seed: () => const NotesState(isSelectionMode: true, selectedNotes: []),
@@ -1186,7 +1213,7 @@ void main() {
       build: () {
         // 3 notes — constructor's LoadNotes loads them all into groupedNotes
         when(
-          () => mockRepo.getAllNotes(),
+          () => mockRepo.getNotes(),
         ).thenAnswer((_) async => buildNoteList(3));
         return NotesBloc(noteRepository: mockRepo);
       },
@@ -1202,7 +1229,7 @@ void main() {
       'deselects all notes when all are already selected (toggle off)',
       build: () {
         when(
-          () => mockRepo.getAllNotes(),
+          () => mockRepo.getNotes(),
         ).thenAnswer((_) async => buildNoteList(3));
         return NotesBloc(noteRepository: mockRepo);
       },
@@ -1225,7 +1252,7 @@ void main() {
         // pageSize + 5 notes: constructor loads first pageSize into groupedNotes,
         // remaining 5 stay in state.notes but are not visible yet
         when(
-          () => mockRepo.getAllNotes(),
+          () => mockRepo.getNotes(),
         ).thenAnswer((_) async => buildNoteList(Constants.pageSize + 5));
         return NotesBloc(noteRepository: mockRepo);
       },
@@ -1245,7 +1272,7 @@ void main() {
       'clears selectedNotes and sets isSelectionMode=false',
       build: () {
         when(
-          () => mockRepo.getAllNotes(),
+          () => mockRepo.getNotes(),
         ).thenAnswer((_) async => buildNoteList(3));
         return NotesBloc(noteRepository: mockRepo);
       },
@@ -1265,7 +1292,7 @@ void main() {
     blocTest<NotesBloc, NotesState>(
       'is a no-op when selection is already empty',
       build: () {
-        when(() => mockRepo.getAllNotes()).thenAnswer((_) async => []);
+        when(() => mockRepo.getNotes()).thenAnswer((_) async => []);
         return NotesBloc(noteRepository: mockRepo);
       },
       skip: 2,
@@ -1281,7 +1308,7 @@ void main() {
       'does not affect notes or groupedNotes',
       build: () {
         when(
-          () => mockRepo.getAllNotes(),
+          () => mockRepo.getNotes(),
         ).thenAnswer((_) async => buildNoteList(3));
         return NotesBloc(noteRepository: mockRepo);
       },
