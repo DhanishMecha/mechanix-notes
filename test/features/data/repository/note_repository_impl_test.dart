@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:mechanix_notes/features/notes/data/models/note_metadata.dart';
 import 'package:mechanix_notes/features/notes/data/models/note_model.dart';
 import 'package:mechanix_notes/features/notes/data/repository/note_repository_impl.dart';
+import 'package:mechanix_notes/features/notes/data/services/tantivy_service.dart';
 import 'package:mechanix_notes/objectbox.g.dart';
 
 // ---------------------------------------------------------------------------
@@ -12,6 +12,7 @@ import 'package:mechanix_notes/objectbox.g.dart';
 class MockBox extends Mock implements Box<NoteModel> {}
 class MockQueryBuilder extends Mock implements QueryBuilder<NoteModel> {}
 class MockQuery extends Mock implements Query<NoteModel> {}
+class MockTantivyService extends Mock implements TantivyService {}
 
 class FakeQueryProperty extends Fake implements QueryProperty<NoteModel, Object?> {}
 class FakeQueryPropertyDateTime extends Fake implements QueryProperty<NoteModel, DateTime> {}
@@ -27,7 +28,8 @@ class TestableNoteRepositoryImpl extends NoteRepositoryImpl {
   final Box<NoteModel> fakeBox;
   bool ensureStoreCalled = false;
 
-  TestableNoteRepositoryImpl(this.fakeBox);
+  TestableNoteRepositoryImpl(this.fakeBox, TantivyService tantivyService)
+      : super(tantivyService: tantivyService);
 
   /// Override the getter so the implementation uses our fake box.
   @override
@@ -73,6 +75,7 @@ void main() {
   late MockBox mockBox;
   late MockQueryBuilder mockQueryBuilder;
   late MockQuery mockQuery;
+  late MockTantivyService mockTantivyService;
   late TestableNoteRepositoryImpl repository;
 
   setUpAll(() {
@@ -98,7 +101,14 @@ void main() {
     mockBox = MockBox();
     mockQueryBuilder = MockQueryBuilder();
     mockQuery = MockQuery();
-    repository = TestableNoteRepositoryImpl(mockBox);
+    mockTantivyService = MockTantivyService();
+    repository = TestableNoteRepositoryImpl(mockBox, mockTantivyService);
+
+    // Setup default Tantivy stubs
+    when(() => mockTantivyService.initialize()).thenAnswer((_) async {});
+    when(() => mockTantivyService.addNote(any(), any(), any())).thenAnswer((_) async {});
+    when(() => mockTantivyService.deleteNotesBatch(any())).thenAnswer((_) async {});
+    when(() => mockTantivyService.search(any())).thenAnswer((_) async => []);
 
     // Setup default query builder stubbing
     when(() => mockBox.query(any())).thenReturn(mockQueryBuilder);
@@ -122,7 +132,7 @@ void main() {
     test('returns empty list when box is empty', () async {
       when(() => mockQuery.find()).thenReturn([]);
 
-      final result = await repository.getNotes();
+      final result = await repository.getNotes(0, 10);
 
       expect(result, isEmpty);
       expect(repository.ensureStoreCalled, isTrue);
@@ -147,7 +157,7 @@ void main() {
 
       when(() => mockQuery.find()).thenReturn([note1, note2]);
 
-      final result = await repository.getNotes();
+      final result = await repository.getNotes(0, 10);
 
       expect(result, hasLength(2));
       expect(result.map((n) => n.id), containsAll(['1', '2']));
@@ -168,7 +178,7 @@ void main() {
 
       when(() => mockQuery.find()).thenReturn([note]);
 
-      final result = await repository.getNotes();
+      final result = await repository.getNotes(0, 10);
 
       expect(result, hasLength(1));
       final meta = result.first;
@@ -183,7 +193,7 @@ void main() {
     test('orders query by updatedAt in descending order', () async {
       when(() => mockQuery.find()).thenReturn([]);
 
-      await repository.getNotes();
+      await repository.getNotes(0, 10);
 
       verify(() => mockQueryBuilder.order(NoteModel_.updatedAt, flags: Order.descending)).called(1);
     });
@@ -191,7 +201,7 @@ void main() {
     test('returns empty list and does not throw on exception', () async {
       when(() => mockQuery.find()).thenThrow(Exception('ObjectBox error'));
 
-      final result = await repository.getNotes();
+      final result = await repository.getNotes(0, 10);
 
       expect(result, isEmpty);
     });
@@ -199,7 +209,7 @@ void main() {
     test('calls ensureStoreConnected before accessing box', () async {
       when(() => mockQuery.find()).thenReturn([]);
 
-      await repository.getNotes();
+      await repository.getNotes(0, 10);
 
       expect(repository.ensureStoreCalled, isTrue);
     });
@@ -271,6 +281,7 @@ void main() {
       final note1 = _makeNote(id: '1', title: 'matching title');
       final note2 = _makeNote(id: '2', title: 'other', previewText: 'matching preview');
 
+      when(() => mockTantivyService.search('match')).thenAnswer((_) async => ['1', '2']);
       when(() => mockQuery.find()).thenReturn([note1, note2]);
 
       final result = await repository.searchNotes('match');

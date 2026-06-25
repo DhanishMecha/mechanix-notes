@@ -47,6 +47,10 @@ dependencies:
   show_fps: ^1.1.0
   test: ^1.28.0
   objectbox_flutter_libs: ^5.3.2
+  flutter_tantivy:
+    git:
+      url: https://github.com/DhanishMecha/flutter_tantivy.git
+      ref: main  
 
 dependency_overrides:
   intl: ^0.20.2

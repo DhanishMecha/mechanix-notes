@@ -4,15 +4,22 @@ import 'package:mechanix_notes/core/utils/constants.dart';
 import 'package:mechanix_notes/features/notes/data/models/note_metadata.dart';
 import 'package:mechanix_notes/features/notes/data/models/note_model.dart';
 import 'package:mechanix_notes/features/notes/data/repository/note_repository.dart';
+import 'package:mechanix_notes/features/notes/data/services/tantivy_service.dart';
 import 'package:mechanix_notes/objectbox.g.dart';
 
 class NoteRepositoryImpl extends NoteRepository {
   Store? _store;
   Box<NoteModel>? _box;
+  final TantivyService _tantivyService;
+
+  NoteRepositoryImpl({TantivyService? tantivyService})
+    : _tantivyService = tantivyService ?? TantivyService();
 
   Box<NoteModel> get box {
     if (_box == null) {
-      throw StateError("Box is not initialized. Call ensureStoreConnected() first.");
+      throw StateError(
+        "Box is not initialized. Call ensureStoreConnected() first.",
+      );
     }
     return _box!;
   }
@@ -28,6 +35,12 @@ class NoteRepositoryImpl extends NoteRepository {
         throw ObjectBoxException("Failed to open ObjectBox store: $e");
       }
       rethrow;
+    }
+
+    try {
+      await _tantivyService.initialize();
+    } catch (e) {
+      AppLogger.e('Failed to initialize Tantivy: $e');
     }
   }
 
@@ -52,19 +65,14 @@ class NoteRepositoryImpl extends NoteRepository {
   }
 
   @override
-  Future<List<NoteMetaData>> getNotes({int? skip, int? take}) async {
+  Future<List<NoteMetaData>> getNotes(int skip, int take) async {
     try {
       await ensureStoreConnected();
       final queryBuilder = box.query()
         ..order(NoteModel_.updatedAt, flags: Order.descending);
       final query = queryBuilder.build();
-
-      if (skip != null) {
-        query.offset = skip;
-      }
-      if (take != null) {
-        query.limit = take;
-      }
+      query.offset = skip;
+      query.limit = take;
 
       final notes = query.find();
       query.close();
@@ -85,7 +93,9 @@ class NoteRepositoryImpl extends NoteRepository {
         );
       }).toList();
 
-      AppLogger.i("Fetched notes page (skip: $skip, take: $take) → page size: ${metaDataList.length}");
+      AppLogger.i(
+        "Fetched notes page (skip: $skip, take: $take) → page size: ${metaDataList.length}",
+      );
       return metaDataList;
     } catch (e) {
       AppLogger.e('Failed to fetch notes: $e');
@@ -144,6 +154,7 @@ class NoteRepositoryImpl extends NoteRepository {
       if (notesToDelete.isNotEmpty) {
         box.removeMany(notesToDelete.map((n) => n.obxId).toList());
       }
+      await _tantivyService.deleteNotesBatch(ids);
       AppLogger.i('NoteRepository: deleteNotes(${ids.length})');
     } catch (e) {
       AppLogger.e('NoteRepository: deleteNotes failed: $e');
@@ -161,6 +172,7 @@ class NoteRepositoryImpl extends NoteRepository {
         note.obxId = existing.obxId;
       }
       box.put(note);
+      await _tantivyService.addNote(note.id, note.title, note.plainText);
       AppLogger.i(
         'NoteRepository: upsertNote(${note.id}) ${note.updatedAt} ${note.title} ✓',
       );
@@ -173,28 +185,32 @@ class NoteRepositoryImpl extends NoteRepository {
   Future<List<NoteMetaData>> searchNotes(String query) async {
     try {
       await ensureStoreConnected();
-      final q = box.query(
-        NoteModel_.title.contains(query, caseSensitive: false)
-        .or(NoteModel_.previewText.contains(query, caseSensitive: false))
-      ).build();
-      final results = q.find();
+      final ids = await _tantivyService.search(query);
+      if (ids.isEmpty) return [];
+
+      final queryBuilder = box.query(NoteModel_.id.oneOf(ids));
+      final q = queryBuilder.build();
+      final dbNotes = q.find();
       q.close();
 
-      final matchingNotes = results.map((note) {
-        return NoteMetaData(
-          id: note.id,
-          height: note.height,
-          title: note.title,
-          createdAt: note.createdAt,
-          updatedAt: note.updatedAt,
-          previewText: note.previewText,
-        );
-      }).toList();
-
-      // Sort desc by updatedAt
-      matchingNotes.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
-
-      AppLogger.i("Found ${matchingNotes.length} matching notes in repository");
+      final notesMap = {for (var note in dbNotes) note.id: note};
+      final matchingNotes = <NoteMetaData>[];
+      for (final id in ids) {
+        final note = notesMap[id];
+        if (note != null) {
+          matchingNotes.add(
+            NoteMetaData(
+              id: note.id,
+              height: note.height,
+              title: note.title,
+              createdAt: note.createdAt,
+              updatedAt: note.updatedAt,
+              previewText: note.previewText,
+            ),
+          );
+        }
+      }
+      AppLogger.i("Found ${matchingNotes.length} matching notes via Tantivy");
       return matchingNotes;
     } catch (e) {
       AppLogger.e('Failed to search notes: $e');

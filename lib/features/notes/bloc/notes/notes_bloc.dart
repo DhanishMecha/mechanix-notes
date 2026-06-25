@@ -32,8 +32,8 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
 
     try {
       final firstPage = await noteRepository.getNotes(
-        skip: 0,
-        take: Constants.pageSize,
+        0,
+        Constants.pageSize,
       );
       final flattened = _buildFlattenedNotes(firstPage);
       final hasMore = firstPage.length == Constants.pageSize;
@@ -80,8 +80,8 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
       final currentCount = state.groupedNotes.whereType<NoteMetaData>().length;
 
       final newBatch = await noteRepository.getNotes(
-        skip: currentCount,
-        take: Constants.pageSize,
+        currentCount,
+        Constants.pageSize,
       );
 
       if (newBatch.isEmpty) {

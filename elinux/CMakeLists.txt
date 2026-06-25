@@ -102,6 +102,15 @@ if(NOT CMAKE_BUILD_TYPE MATCHES "Debug")
     COMPONENT Runtime)
 endif()
 
+# --- flutter_tantivy Rust library linkage ---
+if(TARGET flutter_tantivy_cargokit)
+  add_dependencies(${BINARY_NAME} flutter_tantivy_cargokit)
+endif()
+
+foreach(lib_path ${flutter_tantivy_bundled_libraries})
+  target_link_libraries(${BINARY_NAME} PRIVATE "${lib_path}")
+endforeach()
+
 
 # --- ObjectBox Library Setup ---
 set(OBX_VERSION "5.3.2")
