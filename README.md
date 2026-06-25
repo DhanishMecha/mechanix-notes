@@ -14,6 +14,7 @@ Mechanix Notes is a simple and lightweight note-taking application built with Fl
 
 - [Flutter-Elinux SDK](https://github.com/flutter-elinux/flutter-elinux)
 - [Dart SDK](https://dart.dev/get-dart)
+- [Rust & Cargo](https://www.rust-lang.org/tools/install) (required for the Rust-based Tantivy search library)
 
 ### Steps to Run Notes App
 
