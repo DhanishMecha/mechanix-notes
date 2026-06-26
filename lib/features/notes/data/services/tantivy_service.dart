@@ -26,14 +26,31 @@ class TantivyService {
     }
   }
 
+  /// Limits content to the maximum characters and words allowed for indexing.
+  static String truncateContent(String plainText) {
+    String truncatedPlainText = plainText;
+    if (truncatedPlainText.length > Constants.tantivyIndexContentMaxLength) {
+      truncatedPlainText = truncatedPlainText.substring(
+        0,
+        Constants.tantivyIndexContentMaxLength,
+      );
+    }
+    final wordMatches = RegExp(r'\S+').allMatches(truncatedPlainText);
+    if (wordMatches.length > Constants.tantivyIndexContentMaxWords) {
+      final endOfMaxWords = wordMatches
+          .elementAt(Constants.tantivyIndexContentMaxWords - 1)
+          .end;
+      truncatedPlainText = truncatedPlainText.substring(0, endOfMaxWords);
+    }
+    return truncatedPlainText;
+  }
+
   Future<void> addNote(String id, String title, String plainText) async {
     try {
       if (!_tantivyInitialized) {
         await initialize();
       }
-      final truncatedPlainText = plainText.length > Constants.tantivyIndexContentMaxLength
-          ? plainText.substring(0, Constants.tantivyIndexContentMaxLength)
-          : plainText;
+      final truncatedPlainText = truncateContent(plainText);
       await updateDocument(
         doc: Document(id: id, text: '$title\n$truncatedPlainText'),
       );

@@ -6,5 +6,6 @@ class Constants {
   static const String notesTantivyDbPath =
       "/.config/mechanix_apps/notes/tantivy";
   static const int noteTitleMaxLength = 40;
-  static const int tantivyIndexContentMaxLength = 1000;
+  static const int tantivyIndexContentMaxLength = 3000;
+  static const int tantivyIndexContentMaxWords = 300;
 }
