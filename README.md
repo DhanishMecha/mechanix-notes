@@ -66,3 +66,9 @@ flutter-elinux test integration_test/<test-file-name>
 - **Rich Text Support**: Basic text formatting support for better note organization.
 
 ---
+
+## TODO
+- Handle disk storage error when saving a note.
+- Try to remove Objectbox
+- Store notes in files
+- Tantivy to store id and content for index
