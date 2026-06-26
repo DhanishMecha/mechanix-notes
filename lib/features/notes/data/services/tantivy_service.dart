@@ -31,8 +31,11 @@ class TantivyService {
       if (!_tantivyInitialized) {
         await initialize();
       }
+      final truncatedPlainText = plainText.length > Constants.tantivyIndexContentMaxLength
+          ? plainText.substring(0, Constants.tantivyIndexContentMaxLength)
+          : plainText;
       await updateDocument(
-        doc: Document(id: id, text: '$title\n$plainText'),
+        doc: Document(id: id, text: '$title\n$truncatedPlainText'),
       );
     } catch (e) {
       AppLogger.e('[TantivyService] Failed to add note ($id): $e');
