@@ -60,7 +60,7 @@ flutter-elinux test integration_test/<test-file-name>
 - **Create Notes**: Quickly create and save notes.
 - **Edit Notes**: Update existing notes anytime.
 - **Delete Notes**: Remove unwanted notes easily.
-- **Search Notes**: Find notes instantly with search functionality.
+- **Search Notes**: Find notes instantly with search functionality (indexes notes using Tantivy with a maximum character support of 1000 characters per note).
 - **Persistent Storage**: Notes are stored locally on the device.
 - **Clean UI**: Minimal and user-friendly interface optimized for Mechanix OS.
 - **Rich Text Support**: Basic text formatting support for better note organization.
