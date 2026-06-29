@@ -8,4 +8,6 @@ class Constants {
   static const int noteTitleMaxLength = 40;
   static const int tantivyIndexContentMaxLength = 3000;
   static const int tantivyIndexContentMaxWords = 300;
+  static const int defaultSearchLimit = 20;
+  static const int maxDBSizeInKB = 15000; //15 mb
 }

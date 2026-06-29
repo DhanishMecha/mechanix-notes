@@ -1,9 +1,11 @@
+import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:mechanix_notes/features/notes/data/models/note_model.dart';
 import 'package:mechanix_notes/features/notes/data/repository/note_repository_impl.dart';
-import 'package:mechanix_notes/features/notes/data/services/tantivy_service.dart';
+import 'package:mechanix_notes/features/notes/data/services/indexing_service.dart';
 import 'package:mechanix_notes/objectbox.g.dart';
+import 'package:objectbox/objectbox.dart';
 
 // ---------------------------------------------------------------------------
 // Mocks & Fakes
@@ -12,7 +14,7 @@ import 'package:mechanix_notes/objectbox.g.dart';
 class MockBox extends Mock implements Box<NoteModel> {}
 class MockQueryBuilder extends Mock implements QueryBuilder<NoteModel> {}
 class MockQuery extends Mock implements Query<NoteModel> {}
-class MockTantivyService extends Mock implements TantivyService {}
+class MockIndexingService extends Mock implements IndexingService {}
 
 class FakeQueryProperty extends Fake implements QueryProperty<NoteModel, Object?> {}
 class FakeQueryPropertyDateTime extends Fake implements QueryProperty<NoteModel, DateTime> {}
@@ -28,8 +30,8 @@ class TestableNoteRepositoryImpl extends NoteRepositoryImpl {
   final Box<NoteModel> fakeBox;
   bool ensureStoreCalled = false;
 
-  TestableNoteRepositoryImpl(this.fakeBox, TantivyService tantivyService)
-      : super(tantivyService: tantivyService);
+  TestableNoteRepositoryImpl(this.fakeBox, IndexingService indexingService)
+      : super(indexingService: indexingService);
 
   /// Override the getter so the implementation uses our fake box.
   @override
@@ -75,7 +77,7 @@ void main() {
   late MockBox mockBox;
   late MockQueryBuilder mockQueryBuilder;
   late MockQuery mockQuery;
-  late MockTantivyService mockTantivyService;
+  late MockIndexingService mockIndexingService;
   late TestableNoteRepositoryImpl repository;
 
   setUpAll(() {
@@ -101,14 +103,14 @@ void main() {
     mockBox = MockBox();
     mockQueryBuilder = MockQueryBuilder();
     mockQuery = MockQuery();
-    mockTantivyService = MockTantivyService();
-    repository = TestableNoteRepositoryImpl(mockBox, mockTantivyService);
+    mockIndexingService = MockIndexingService();
+    repository = TestableNoteRepositoryImpl(mockBox, mockIndexingService);
 
-    // Setup default Tantivy stubs
-    when(() => mockTantivyService.initialize()).thenAnswer((_) async {});
-    when(() => mockTantivyService.addNote(any(), any(), any())).thenAnswer((_) async {});
-    when(() => mockTantivyService.deleteNotesBatch(any())).thenAnswer((_) async {});
-    when(() => mockTantivyService.search(any())).thenAnswer((_) async => []);
+    // Setup default indexing stubs
+    when(() => mockIndexingService.initialize()).thenAnswer((_) async {});
+    when(() => mockIndexingService.upsertNote(any(), any(), any())).thenAnswer((_) async {});
+    when(() => mockIndexingService.deleteNotesBatch(any())).thenAnswer((_) async {});
+    when(() => mockIndexingService.search(any())).thenAnswer((_) async => []);
 
     // Setup default query builder stubbing
     when(() => mockBox.query(any())).thenReturn(mockQueryBuilder);
@@ -270,6 +272,14 @@ void main() {
       expect(note.obxId, 42);
       verify(() => mockBox.put(note)).called(1);
     });
+
+    test('upsertNote propagates DbFullException when writing to box fails', () async {
+      final note = _makeNote(id: '1', title: 'New Title');
+      when(() => mockQuery.findFirst()).thenReturn(null);
+      when(() => mockBox.put(any())).thenThrow(DbFullException('Disk full', 1018));
+
+      expect(() => repository.upsertNote(note), throwsA(isA<DbFullException>()));
+    });
   });
 
   // -------------------------------------------------------------------------
@@ -281,7 +291,7 @@ void main() {
       final note1 = _makeNote(id: '1', title: 'matching title');
       final note2 = _makeNote(id: '2', title: 'other', previewText: 'matching preview');
 
-      when(() => mockTantivyService.search('match')).thenAnswer((_) async => ['1', '2']);
+      when(() => mockIndexingService.search('match')).thenAnswer((_) async => ['1', '2']);
       when(() => mockQuery.find()).thenReturn([note1, note2]);
 
       final result = await repository.searchNotes('match');

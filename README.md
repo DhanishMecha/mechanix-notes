@@ -68,7 +68,4 @@ flutter-elinux test integration_test/<test-file-name>
 ---
 
 ## TODO
-- Handle disk storage error when saving a note.
-- Try to remove Objectbox
-- Store notes in files
-- Tantivy to store id and content for index
+- Handle disk storage errors during indexing.

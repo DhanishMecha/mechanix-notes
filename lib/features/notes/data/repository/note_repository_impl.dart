@@ -4,16 +4,16 @@ import 'package:mechanix_notes/core/utils/constants.dart';
 import 'package:mechanix_notes/features/notes/data/models/note_metadata.dart';
 import 'package:mechanix_notes/features/notes/data/models/note_model.dart';
 import 'package:mechanix_notes/features/notes/data/repository/note_repository.dart';
-import 'package:mechanix_notes/features/notes/data/services/tantivy_service.dart';
+import 'package:mechanix_notes/features/notes/data/services/indexing_service.dart';
 import 'package:mechanix_notes/objectbox.g.dart';
 
 class NoteRepositoryImpl extends NoteRepository {
   Store? _store;
   Box<NoteModel>? _box;
-  final TantivyService _tantivyService;
+  final IndexingService _indexingService;
 
-  NoteRepositoryImpl({TantivyService? tantivyService})
-    : _tantivyService = tantivyService ?? TantivyService();
+  NoteRepositoryImpl({IndexingService? indexingService})
+    : _indexingService = indexingService ?? IndexingService();
 
   Box<NoteModel> get box {
     if (_box == null) {
@@ -38,7 +38,7 @@ class NoteRepositoryImpl extends NoteRepository {
     }
 
     try {
-      await _tantivyService.initialize();
+      await _indexingService.initialize();
     } catch (e) {
       AppLogger.e('Failed to initialize Tantivy: $e');
     }
@@ -54,7 +54,10 @@ class NoteRepositoryImpl extends NoteRepository {
         await appDir.create(recursive: true);
       }
 
-      _store = await openStore(directory: appDir.path);
+      _store = await openStore(
+        maxDBSizeInKB: Constants.maxDBSizeInKB,
+        directory: appDir.path,
+      );
       _box = _store!.box<NoteModel>();
 
       AppLogger.i('[NoteRepository] ObjectBox store opened at ${appDir.path}');
@@ -154,7 +157,7 @@ class NoteRepositoryImpl extends NoteRepository {
       if (notesToDelete.isNotEmpty) {
         box.removeMany(notesToDelete.map((n) => n.obxId).toList());
       }
-      await _tantivyService.deleteNotesBatch(ids);
+      await _indexingService.deleteNotesBatch(ids);
       AppLogger.i('NoteRepository: deleteNotes(${ids.length})');
     } catch (e) {
       AppLogger.e('NoteRepository: deleteNotes failed: $e');
@@ -172,10 +175,17 @@ class NoteRepositoryImpl extends NoteRepository {
         note.obxId = existing.obxId;
       }
       box.put(note);
-      await _tantivyService.addNote(note.id, note.title, note.plainText);
+      await _indexingService.upsertNote(note.id, note.title, note.plainText);
       AppLogger.i(
         'NoteRepository: upsertNote(${note.id}) ${note.updatedAt} ${note.title} ✓',
       );
+    } on DbFullException {
+      rethrow;
+    } on FileSystemException catch (e) {
+      AppLogger.e(
+        'NoteRepository: upsertNote failed due to index storage error: $e',
+      );
+      throw DbFullException('Storage is full: $e', 1018);
     } catch (e) {
       AppLogger.e('NoteRepository: upsertNote failed: $e');
     }
@@ -185,7 +195,7 @@ class NoteRepositoryImpl extends NoteRepository {
   Future<List<NoteMetaData>> searchNotes(String query) async {
     try {
       await ensureStoreConnected();
-      final ids = await _tantivyService.search(query);
+      final ids = await _indexingService.search(query);
       if (ids.isEmpty) return [];
 
       final queryBuilder = box.query(NoteModel_.id.oneOf(ids));
@@ -210,7 +220,9 @@ class NoteRepositoryImpl extends NoteRepository {
           );
         }
       }
-      AppLogger.i("Found ${matchingNotes.length} matching notes via Tantivy");
+      AppLogger.i(
+        "Found ${matchingNotes.length} matching notes via IndexingService",
+      );
       return matchingNotes;
     } catch (e) {
       AppLogger.e('Failed to search notes: $e');
