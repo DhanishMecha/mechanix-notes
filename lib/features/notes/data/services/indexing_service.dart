@@ -33,7 +33,9 @@ class IndexingService {
         0,
         Constants.tantivyIndexContentMaxLength,
       );
-      AppLogger.d('[IndexingService] Char limit: ${plainText.length} -> ${truncatedPlainText.length}');
+      AppLogger.d(
+        '[IndexingService] Char limit: ${plainText.length} -> ${truncatedPlainText.length}',
+      );
     }
     final wordMatches = RegExp(r'\S+').allMatches(truncatedPlainText);
     if (wordMatches.length > Constants.tantivyIndexContentMaxWords) {
@@ -41,7 +43,9 @@ class IndexingService {
           .elementAt(Constants.tantivyIndexContentMaxWords - 1)
           .end;
       truncatedPlainText = truncatedPlainText.substring(0, endOfMaxWords);
-      AppLogger.d('[IndexingService] Word limit: ${wordMatches.length} -> ${Constants.tantivyIndexContentMaxWords}');
+      AppLogger.d(
+        '[IndexingService] Word limit: ${wordMatches.length} -> ${Constants.tantivyIndexContentMaxWords}',
+      );
     }
     return truncatedPlainText;
   }
@@ -54,7 +58,7 @@ class IndexingService {
       AppLogger.d('[IndexingService] Upsert: id=$id');
       final truncatedPlainText = truncateContent(plainText);
       await updateDocument(
-        doc: Document(id: id, text: '$title\n$truncatedPlainText'),
+        doc: Document(id: id, title: title, text: truncatedPlainText),
       );
     } catch (e) {
       AppLogger.e('[IndexingService] Upsert failed ($id): $e');
@@ -90,7 +94,9 @@ class IndexingService {
         topK: BigInt.from(limit),
       );
 
-      AppLogger.d('[IndexingService] Search: "$cleanQuery" -> ${results.length}');
+      AppLogger.d(
+        '[IndexingService] Search: "$cleanQuery" -> ${results.length}',
+      );
 
       return results.map((r) => r.doc.id).toSet().toList();
     } catch (e) {
