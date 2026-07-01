@@ -80,7 +80,7 @@ class IndexingService {
   /// Performs a full-text search against the Tantivy index, returning matching document IDs in order of relevance.
   Future<List<String>> search(
     String query, {
-    int limit = Constants.defaultSearchLimit,
+    int limit = Constants.searchResultLimit,
   }) async {
     try {
       if (!_initialized) {
