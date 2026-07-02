@@ -58,7 +58,7 @@ class IndexingService {
       AppLogger.d('[IndexingService] Upsert: id=$id');
       final truncatedPlainText = truncateContent(plainText);
       await updateDocument(
-        doc: Document(id: id, title: title, text: truncatedPlainText),
+        doc: Document(id: id, title: title, content: truncatedPlainText),
       );
     } catch (e) {
       AppLogger.e('[IndexingService] Upsert failed ($id): $e');
